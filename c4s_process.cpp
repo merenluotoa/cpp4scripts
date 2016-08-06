@@ -88,6 +88,7 @@ c4s::proc_pipes::proc_pipes()
 #endif
     br_out = 0;
     br_err = 0;
+    br_in  = 0;
     send_ctrlZ = false;
 }
 
@@ -428,6 +429,7 @@ void c4s::proc_pipes::write_child_input(const string &input)
         cerr << "proc_pipes::write_child_input - failed. BW="<<bw<<'\n';
     }
 #endif
+    br_in += bw;
     send_ctrlZ = true;
 }
 

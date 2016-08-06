@@ -133,12 +133,12 @@ size_t c4s::path_list::add(const path &target, const char *wild, int plf, const 
     if(wild && *wild=='*' && *(wild+1)==0)
         wild = 0;
     // Open and read the directory
-    const char *dir;
+    string dir;
     if(target.get_dir().empty())
         dir = "./";
     else
-        dir = target.get_dir().c_str();
-    DIR *source_dir = opendir(dir);
+        dir = target.get_dir();
+    DIR *source_dir = opendir(dir.c_str());
     if(!source_dir)
     {
         ostringstream os;

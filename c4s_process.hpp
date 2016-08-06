@@ -58,6 +58,7 @@ namespace c4s {
         int fd_out[2];
         int fd_err[2];
         int fd_in[2];
+        size_t br_in;
 #else
         struct winpipe {
             winpipe(bool);
@@ -73,6 +74,7 @@ namespace c4s {
             static int count;
         };
         winpipe out, err, in;
+        DWORD br_in;
 #endif
     };
 

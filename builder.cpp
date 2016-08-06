@@ -227,7 +227,7 @@ int build(ostream *log)
         *log << endl;
     path_list plmkc4s;
     plmkc4s += path("makec4s.cpp");
-    flags = BUILD_BIN|BUILD_PAD_NAME;
+    flags = BUILD_BIN;
     if(args.is_set("-deb"))
         flags |= BUILD_DEBUG;
     else
@@ -309,14 +309,12 @@ int install()
     sources.add(cpp_linux,' ');
     path dlib(builder_gcc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_DEBUG).get_target_path());
     path rlib(builder_gcc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_RELEASE).get_target_path());
-    path make_deb(builder_gcc(0,"makec4s",0,BUILD_BIN|BUILD_PAD_NAME|BUILD_DEBUG).get_target_name());
-    path make_rel(builder_gcc(0,"makec4s",0,BUILD_BIN|BUILD_PAD_NAME|BUILD_RELEASE).get_target_name());
+    path make_name(builder_gcc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
 #else
     sources.add(cpp_win,' ');
     path dlib(builder_vc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_DEBUG).get_target_path());
     path rlib(builder_vc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_RELEASE).get_target_path());
-    path make_deb(builder_vc(0,"makec4s",0,BUILD_BIN|BUILD_PAD_NAME|BUILD_DEBUG).get_target_name());
-    path make_rel(builder_vc(0,"makec4s",0,BUILD_BIN|BUILD_PAD_NAME|BUILD_RELEASE).get_target_name());
+    path make_name(builder_vc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
 #endif
     path_list libs;
     if(dlib.exists())
@@ -350,21 +348,16 @@ int install()
     if(!lbin.dirname_exists())
         lbin.mkdir();
 #endif
-    int count=0;
-    if(make_deb.exists()) {
-        make_deb.cp(lbin,PCF_FORCE);
-        count++;
+    if(make_name.exists()) {
+        make_name.cp(lbin,PCF_FORCE);
         if(args.is_set("-V"))
-            cout << "Copying "<<make_deb.get_path()<<" to "<<lbin.get_path()<<'\n';
+            cout << "Copied "<<make_name.get_path()<<" to "<<lbin.get_path()<<'\n';
     }
-    if(make_rel.exists()) {
-        make_rel.cp(lbin,PCF_FORCE);
-        count++;
-        if(args.is_set("-V"))
-            cout << "Copying "<<make_rel.get_path()<<" to "<<lbin.get_path()<<'\n';
-    }
-    if(count == 0) {
-        cout << "WARNING: makec4s-program was not copied!\n";
+    else {
+        cout << "WARNING: makec4s-program was not found. It was not copied!\n";
+        if(args.is_set("-V")) {
+            cout << "makec4s path:"<<make_name.get_path()<<'\n';
+        }
     }
     cout << "Completed\n";
     return 0;

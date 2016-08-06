@@ -93,9 +93,10 @@ c4s::syslog_sink::~syslog_sink()
     closelog();
 }
 
-#ifdef __APPLE__
+#if defined(__linux) || defined(__APPLE__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#pragma GCC diagnostic ignored "-Wformat-security"
 #endif
 void c4s::syslog_sink::print(c4s::LOG_LEVEL ll, const char *str)
 {
@@ -103,7 +104,7 @@ void c4s::syslog_sink::print(c4s::LOG_LEVEL ll, const char *str)
     if(slfac)
         syslog(slfac,str);
 }
-#ifdef __APPLE__
+#if defined(__linux) || defined(__APPLE__)
 #pragma GCC diagnostic pop
 #endif
 #endif
@@ -140,7 +141,7 @@ lowio_sink::lowio_sink(const path &logp)
 {
     bool append=logp.exists();
 #if defined(__linux) || defined(__APPLE__)
-    fid = open(logp.get_path().c_str(), O_CREAT|O_WRONLY|O_APPEND);
+    fid = open(logp.get_path().c_str(), O_CREAT|O_WRONLY|O_APPEND,S_IREAD|S_IWRITE|S_IRGRP|S_IROTH);
     if(fid == -1) {
         ostringstream sserr;
         sserr << "lowio_sink::lowio_sink - unable to open given file for logging: ("<<errno<<") "<<strerror(errno);
