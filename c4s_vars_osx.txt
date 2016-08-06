@@ -1,0 +1,3 @@
+C4S=/usr/local
+BINC=/usr/local/include
+BLIB=/usr/local/lib

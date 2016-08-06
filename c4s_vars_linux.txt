@@ -1,0 +1,24 @@
+C4S=/usr/local
+XML2=/usr/local/devtools/libxml2-2.7.7
+HARU=/usr/local/devtools/libharu-2.0.8
+EXPAT=/usr/local/devtools/expat-2.0.1
+STLPORT=/usr/local/devtools/STLport-5.2.1
+# -I$(MENACON)
+# -lmenacon-stl -L$(MENACON)/debug64
+# -lmenacon-stl -L$(MENACON)/release64
+STDINC=/usr/local/include
+LIBPQ=/usr/local/src/postgresql-9.1.4/src
+WXWIDGETS=/usr/local/devtools/wxWidgets
+LIBPQ=/usr/local/src/postgresql-9.1.4/src
+BINC=/usr/local/include
+BLINK=/usr/local/lib
+# --------
+DDB_ALL_INC=-DDDB_USESTL -I/usr/local/include/directdb -I/usr/local/src/postgresql-9.1.4/src/interfaces/libpq -I/usr/local/src/postgresql-9.1.4/src/include
+DDB_ALL_DLIB=-ldirectdb-lnxd64stl -lpq -L/usr/local/lib -L/usr/local/src/postgresql-9.1.4/src/interfaces/libpq
+DDB_ALL_RLIB=-ldirectdb-lnxr64stl -lpq -L/usr/local/lib -L/usr/local/src/postgresql-9.1.4/src/interfaces/libpq
+# --------
+MAKEC4S_COMP_DEB64=-DMC_STL -I/usr/local/include/menaconlib 
+MAKEC4S_LINK_DEB64=-lmenacon-d-stl -lexpat -L/usr/local/devtools/expat-2.0.1/lib -L/usr/local/lib
+
+MAKEC4S_COMP_REL64=-DMC_STL -I/usr/local/include/menaconlib 
+MAKEC4S_LINK_REL64=-lmenacon-r-stl -lexpat -L/usr/local/devtools/expat-2.0.1/lib -L/usr/local/lib

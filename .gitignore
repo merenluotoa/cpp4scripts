@@ -1,0 +1,7 @@
+build-lnxd
+build-lnxr
+build-osxd
+build-osxr
+builder-*
+makec4s-*
+git-commit-log

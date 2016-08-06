@@ -1,0 +1,22 @@
+# C4S_32=C:\Devtools\build32
+# C4S_64=C:\Devtools\build64
+
+C4SLIB_D = /LIBPATH:C:\Devtools\build$$\lib c4s-d.lib
+C4SLIB_R = /LIBPATH:C:\Devtools\build$$\lib c4s-r.lib
+
+BINC=C:\Devtools\build$$\include
+BLIB=C:\Devtools\build$$\lib
+
+ZLIB=C:\Devtools\build$$\include\zlib
+LIBPNG=C:\Devtools\lpng154
+LIBXML=C:\Devtools\libxml2-2.7.8
+#STLPORT=C:\Devtools\STLport-5.2.1
+MENACON=C:\Devtools\build$$\menaconlib
+DIRECTDB=C:\Users\anttim\prj\directdb
+LIBPQ=C:\Devtools\build64\include
+PDF_COMP=/IC:\Devtools\PDFlib-8.0.5\bind\cpp /IC:\Devtools\PDFlib-8.0.5\pdflib_$$
+PDF_LINK=/LIBPATH:C:\Devtools\PDFlib-8.0.5\pdflib_$$ pdflib.lib
+# --------
+DDB_COMP=/IC:\Devtools\build$$\include /IC:\Devtools\build$$\include\directdb /IC:\Devtools\build$$\include\libpq /DUSE_SSL
+DDB_LINK=/LIBPATH:C:\Devtools\build$$\lib libeay32.lib ssleay32.lib libpq.lib
+# --------
