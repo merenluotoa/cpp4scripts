@@ -87,10 +87,11 @@ void c4s::builder::add_comp(const char *arg)
 #ifdef _WIN32
     char var[MAX_LINE];
     strcpy(var,arg);
-    variables::exp_arch(builder::get_arch(),var);
+    variables::exp_arch(builder::get_arch(), var);
     c_opts<<var<<' ';
 #else
-    c_opts<<arg<<' ';
+    c_opts<<vars.expand(arg, true);
+    c_opts<<' ';
 #endif
 }
 // ------------------------------------------------------------------------------------------

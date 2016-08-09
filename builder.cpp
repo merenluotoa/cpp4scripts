@@ -118,7 +118,7 @@ int build(ostream *log)
     cout << "Building library\n";
     if(args.is_set("-u") && builder::update_build_no("c4s-version.cpp"))
         cout << "Warning: Unable to update build number.\n";
-    int flags = BUILD_LIB|BUILD_PAD_NAME;
+    int flags = BUILD_LIB;
     if(!args.is_set("-deb") && !args.is_set("-rel")) {
 #ifdef __APPLE__
         // This piece of code is for Xcode which passes build options via environment.
@@ -152,7 +152,12 @@ int build(ostream *log)
     path_list cppFiles(cpp_list,' ');
     cppFiles.add(cpp_linux,' ');
 
-    builder *make = new builder_gcc(&cppFiles,"c4s",log,flags);
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
+    builder *make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
     if(args.is_set("-t"))
         make->add_comp("-DC4S_DEBUGTRACE");
     make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
@@ -212,8 +217,13 @@ int build(ostream *log)
 
     path_list cppFiles(cpp_list,' ');
     cppFiles.add(cpp_win,' ');
-    const char* libname = args.is_set("-xp") ? "c4s-xp" : "c4s";
-    builder *make = new builder_vc(&cppFiles,libname,log,flags);
+
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
+    builder *make = new builder_vc(&cppFiles,target.c_str(),log,flags);
     make->add_comp("/DC4S_LIB_BUILD /D_CRT_SECURE_NO_WARNINGS");
     if(args.is_set("-xp"))
         make->add_comp("/D_WIN32_WINNT=0x0501");
@@ -305,15 +315,21 @@ int install()
         const char *archtxt = arch==BUILD_X64?"64-bit":"32-bit";
         cout << "Running in "<<archtxt<<" environment\n";
     }
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
+
 #if defined(__linux) || defined(__APPLE__)
     sources.add(cpp_linux,' ');
-    path dlib(builder_gcc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_DEBUG).get_target_path());
-    path rlib(builder_gcc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_RELEASE).get_target_path());
+    path dlib(builder_gcc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
+    path rlib(builder_gcc(0,target.c_str(),0,BUILD_LIB|BUILD_RELEASE).get_target_path());
     path make_name(builder_gcc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
 #else
     sources.add(cpp_win,' ');
-    path dlib(builder_vc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_DEBUG).get_target_path());
-    path rlib(builder_vc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_RELEASE).get_target_path());
+    path dlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
+    path rlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_RELEASE).get_target_path());
     path make_name(builder_vc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
 #endif
     path_list libs;
@@ -369,11 +385,11 @@ int main(int argc, char **argv)
 
     args += argument("-deb",  false,"Create debug version of library.");
     args += argument("-rel",  false,"Create release version of library.");
+    args += argument("-l",    true,  "Environment label to apend to library name.");
     args += argument("-V",    false,"Verbose mode.");
     args += argument("-t",    false,"Add TRACE define into target build that enables lots of debug output.");
     args += argument("-u",    false, "Updates the build number (last part of version number).");
 #ifdef _WIN32
-    args += argument("-xp",   false,"Make a build suitable for WindowsXP.");
     args += argument("-wda",  false,"Wait for debugger to attach, i.e. wait for a keypress.");
 #endif
     args += argument("-CXX",  false, "Reads the compiler name from CXX environment variable.");

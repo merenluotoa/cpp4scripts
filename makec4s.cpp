@@ -82,8 +82,9 @@ int main(int argc, char **argv)
 #endif
     args += argument("-CXX",false, "Requests the makec4s to read the C++ compiler name from CXX environment variable.");
     args += argument("-a",  false, "Use the 'all inclusive' sources i.e. without the CPP4Scripts library.");
+    args += argument("-l",  true,  "Environment label to apend to executable name.");
     args += argument("-m",  true,  "Set the VALUE as timeout (seconds) for the compile.");
-    args += argument("-p",  false, "Pad the final executable name with environment and build type.");
+    //args += argument("-p",  false, "Pad the final executable name with environment and build type.");
     args += argument("-t",  false, "Enable C4S_DEBUGTRACE define for tracing the cpp4scripts code.");
     args += argument("-h",  false, "Outputs this help / parameter list.");
     args += argument("-?",  false, "Outputs this help / parameter list.");
@@ -172,6 +173,7 @@ int main(int argc, char **argv)
     // Set the sources and the target
     path_list sources;
     path src;
+    string target;
     if(args.is_set("-s"))
         src = args.get_value("-s");
     else {
@@ -182,7 +184,7 @@ int main(int argc, char **argv)
         else {
             src = "c4s-build.cpp";
             if(args.is_set("-V"))
-                cout << "Source file not specified\n";
+                cout << "Using default source file 'c4s-build.cpp'\n";
         }
     }
     if(!src.exists()) {
@@ -192,23 +194,22 @@ int main(int argc, char **argv)
     if(verbose)
         cout << "Using "<<src.get_path()<<" as a source file.\n";
     sources += src;
-                     if(args.is_set("-m")) {
-                         timeout = strtol(args.get_value("-m").c_str(),0,10);
-                         if(timeout == 0) {
-                             cout << "Warning: unable to recognize the compile process timeout. Using the default.\n";
-                             timeout = 15;
-                         }
-                     }
+    if(args.is_set("-m")) {
+        timeout = strtol(args.get_value("-m").c_str(),0,10);
+        if(timeout == 0) {
+            cout << "Warning: unable to recognize the compile process timeout. Using the default.\n";
+            timeout = 15;
+        }
+    }
+    target = src.get_base_plain();
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
     try {
         builder *make=0;
         int flags = BUILD_BIN;
         flags |= debug ? BUILD_DEBUG : BUILD_RELEASE;
-#ifdef __APPLE__
-        flags |= BUILD_PAD_NAME;
-#else
-        if(args.is_set("-p"))
-            flags |= BUILD_PAD_NAME;
-#endif
         if(verbose)
             flags |= BUILD_VERBOSE;
         if(args.is_set("-CXX"))
@@ -220,31 +221,24 @@ int main(int argc, char **argv)
         // ............................................................
         // Windows with Visual Studio. TODO: add parameter so that gcc could be used as well.
         string libname("c4s.lib");
-        make = new builder_vc(&sources,src.get_base_plain().c_str(),&cout,flags);
+        make = new builder_vc(&sources,target.c_str(),&cout,flags);
         if(args.is_set("-sr"))
             ((builder_vc*)make)->setStaticRuntime();
         make->include_variables();
-        builder::pad_name(libname,0,flags);
-        make->add_comp("/I$(BINC)\\cpp4scripts");
+        make->add_comp("/I$(C4S)\\include\\cpp4scripts");
         make->add_link("Advapi32.lib");
         if(args.is_set("-t"))
             make->add_comp("/DC4S_DEBUGTRACE");
         if(!args.is_set("-a") && !args.is_set("-t")) {
             make->add_link(libname.c_str());
-            make->add_link("/LIBPATH:$(BLIB)");
-        }
-        if(args.is_set("-sp")) {
-            make->add_comp("/I$(STLPORT_INC)");
-            make->add_link("stlport.lib");
+            make->add_link("/LIBPATH:$(C4S)\\lib");
         }
 #endif
 #if defined(__linux) || defined(__APPLE__)
         // ............................................................
         // Gcc options for Linux
         string libname("-lc4s");
-        make = new builder_gcc(&sources,src.get_base_plain().c_str(),&cout,flags);
-        make->include_variables();
-        builder::pad_name(libname,0,flags);
+        make = new builder_gcc(&sources,target.c_str(),&cout,flags);
         make->add_comp("-fno-rtti -I$(C4S)/include/cpp4scripts");
         if(args.is_set("-t"))
             make->add_comp("-DC4S_DEBUGTRACE");
@@ -252,10 +246,6 @@ int main(int argc, char **argv)
             make->add_comp("-I$(C4S)/include/cpp4scripts");
             make->add_link(libname.c_str());
             make->add_link("-L$(C4S)/lib");
-        }
-        if(args.is_set("-sp")) {
-            make->add_comp("-I$(STLPORT)/stlport");
-            make->add_link("-lstlport");
         }
 #endif
         if(!make) {
