@@ -179,12 +179,11 @@ int main(int argc, char **argv)
     else {
         // try the environment
         string source_file;
-        if(get_env_var("SOURCE_FILE", source_file))
+        if(get_env_var("MAKEC4S_DEF_SOURCE", source_file))
             src.set(source_file);
         else {
-            src = "c4s-build.cpp";
-            if(args.is_set("-V"))
-                cout << "Using default source file 'c4s-build.cpp'\n";
+            cout << "Nothing to do. Use either -s [source] or env.var. 'MAKEC4S_DEF_SOURCE'\n";
+            return 1;
         }
     }
     if(!src.exists()) {

@@ -104,7 +104,7 @@ void c4s::builder::add_link(const char *arg)
     l_opts<<var<<' ';
 #else
     l_opts<<vars.expand(arg, true);
-    l_opts<<arg<<' ';
+    l_opts<<' ';
 #endif
 }
 // ------------------------------------------------------------------------------------------
