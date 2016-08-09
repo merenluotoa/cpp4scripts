@@ -230,7 +230,10 @@ int main(int argc, char **argv)
             make->add_comp("/DC4S_DEBUGTRACE");
         if(!args.is_set("-a") && !args.is_set("-t")) {
             make->add_link(libname.c_str());
-            make->add_link("/LIBPATH:$(C4S)\\lib");
+            if(debug)
+                make->add_link("/LIBPATH:$(C4S)\\lib-d");
+            else
+                make->add_link("/LIBPATH:$(C4S)\\lib");
         }
 #endif
 #if defined(__linux) || defined(__APPLE__)
@@ -244,7 +247,10 @@ int main(int argc, char **argv)
         if(!args.is_set("-a") && !args.is_set("-t")) {
             make->add_comp("-I$(C4S)/include/cpp4scripts");
             make->add_link(libname.c_str());
-            make->add_link("-L$(C4S)/lib");
+            if(debug)
+                make->add_link("-L$(C4S)/lib-d");
+            else
+                make->add_link("-L$(C4S)/lib");
         }
 #endif
         if(!make) {
