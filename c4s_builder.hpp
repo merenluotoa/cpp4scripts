@@ -74,6 +74,8 @@ namespace c4s {
         bool is_set(const int f) { return (flags&f)==f ? true:false; }
         //! Reads compiler variables from a file.
         void include_variables(const char *filename=0);
+        //! Inserts single variable to the variable list.
+        void set_variable(const string &key, const string &value) { vars.push_back(key,value); }
         //! Prints current options into given stream
         void print(ostream &);
         //! Returns the padded name.

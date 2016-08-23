@@ -6,6 +6,10 @@ This is built by Cpp4Script builder. Please build parameters from builder.cpp.
 
 With -s parameter you may specify other single source Cpp4Script files for compilation.
 These executables will be placed into your current directory.
+
+Version 0.14
+- Allow script files to be named with c4s-extension.
+
 */
 // Copyright (c) Menacon Oy
 /*****************************************************************************************
@@ -239,9 +243,14 @@ int main(int argc, char **argv)
 #if defined(__linux) || defined(__APPLE__)
         // ............................................................
         // Gcc options for Linux
+        // Get C4S location
+        string c4svar;
+        if(!get_env_var("C4S",c4svar))
+            make->set_variable("C4S","/usr/local");
+        // Build options
         string libname("-lc4s");
         make = new builder_gcc(&sources,target.c_str(),&cout,flags);
-        make->add_comp("-fno-rtti -I$(C4S)/include/cpp4scripts");
+        make->add_comp("-x c++ -fno-rtti -I$(C4S)/include/cpp4scripts");
         if(args.is_set("-t"))
             make->add_comp("-DC4S_DEBUGTRACE");
         if(!args.is_set("-a") && !args.is_set("-t")) {
