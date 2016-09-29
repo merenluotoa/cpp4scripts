@@ -160,7 +160,7 @@ int build(ostream *log)
     cout << "Building library\n";
     if(args.is_set("-u") && builder::update_build_no("c4s-version.cpp"))
         cout << "Warning: Unable to update build number\n";
-    flags = BUILD_LIB|BUILD_PAD_NAME;
+    flags = BUILD_LIB;
     flags |= args.is_set("-deb") ? BUILD_DEBUG:BUILD_RELEASE;
     if(args.is_set("-V"))
         flags |= BUILD_VERBOSE;
@@ -303,6 +303,9 @@ int install()
     }
     if(lib_count==0) {
         cout << "WARNING: Neither of the -deb or -rel libraries will be copied. Sure they are built?\n";
+        cout << "Searched:\n";
+        cout << "  "<<dlib.get_path()<<'\n';
+        cout << "  "<<rlib.get_path()<<'\n';
     }
     sources.set_dir(c4s_home);
     path_list headers(args.exe,"*.hpp");
