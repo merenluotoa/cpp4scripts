@@ -1,11 +1,11 @@
 # C4S_32=C:\Devtools\build32
 # C4S_64=C:\Devtools\build64
 
-C4SLIB_D = /LIBPATH:C:\Devtools\build$$\lib c4s-d.lib
-C4SLIB_R = /LIBPATH:C:\Devtools\build$$\lib c4s-r.lib
+C4SLIB_D = /LIBPATH:C:\Devtools\build$$\lib_d c4s.lib
+C4SLIB_R = /LIBPATH:C:\Devtools\build$$\lib c4s.lib
 
 BINC=C:\Devtools\build$$\include
-BLIB=C:\Devtools\build$$\lib
+# BLIB=C:\Devtools\build$$\lib
 
 ZLIB=C:\Devtools\build$$\include\zlib
 LIBPNG=C:\Devtools\lpng154

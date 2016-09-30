@@ -85,10 +85,10 @@ void c4s::builder::include_variables(const char *filename)
 void c4s::builder::add_comp(const char *arg)
 {
 #ifdef _WIN32
-    char var[MAX_LINE];
-    strcpy(var,arg);
-    variables::exp_arch(builder::get_arch(), var);
-    c_opts<<var<<' ';
+    char arch[MAX_LINE];
+    strcpy(arch,arg);
+    variables::exp_arch(builder::get_arch(), arch);
+    c_opts<<vars.expand(arch, true)<<' ';
 #else
     c_opts<<vars.expand(arg, true);
     c_opts<<' ';
@@ -98,10 +98,10 @@ void c4s::builder::add_comp(const char *arg)
 void c4s::builder::add_link(const char *arg)
 {
 #ifdef _WIN32
-    char var[MAX_LINE];
-    strcpy(var,arg);
-    variables::exp_arch(builder::get_arch(),var);
-    l_opts<<var<<' ';
+    char arch[MAX_LINE];
+    strcpy(arch,arg);
+    variables::exp_arch(builder::get_arch(),arch);
+    l_opts<<vars.expand(arch, true)<<' ';
 #else
     l_opts<<vars.expand(arg, true);
     l_opts<<' ';

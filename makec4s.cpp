@@ -209,8 +209,8 @@ int main(int argc, char **argv)
         target += '-';
         target += args.get_value("-l");
     }
+    builder *make=0;
     try {
-        builder *make=0;
         int flags = BUILD_BIN;
         flags |= debug ? BUILD_DEBUG : BUILD_RELEASE;
         if(verbose)
@@ -223,11 +223,13 @@ int main(int argc, char **argv)
 #ifdef _WIN32
         // ............................................................
         // Windows with Visual Studio. TODO: add parameter so that gcc could be used as well.
+        string c4svar, c4sinc;
         string libname("c4s.lib");
         make = new builder_vc(&sources,target.c_str(),&cout,flags);
         if(args.is_set("-sr"))
             ((builder_vc*)make)->setStaticRuntime();
-        make->include_variables();
+        if(!get_env_var("C4S",c4svar))
+            throw c4s_exception("C4S variable undefined. Library location unknown.");
         make->add_comp("/I$(C4S)\\include\\cpp4scripts");
         make->add_link("Advapi32.lib");
         if(args.is_set("-t"))
@@ -277,6 +279,8 @@ int main(int argc, char **argv)
         delete make;
     }catch(c4s_exception ce){
         cout << "Error: " << ce.what() <<'\n';
+        if(make)
+            delete make;
         return 1;
     }
 #ifdef _WIN32
