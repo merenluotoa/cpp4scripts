@@ -43,7 +43,9 @@ Copyright (c) Menacon Ltd, Finland
  using namespace c4s;
 #endif
 
+#ifdef _WIN32
 const size_t MAX_ARG_BUFFER = 512;
+#endif
 
 // ==================================================================================================
 c4s::proc_pipes::proc_pipes()

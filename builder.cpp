@@ -46,67 +46,19 @@ const char *cpp_win = "c4s_builder_vc.cpp c4s_builder_ml.cpp";
 const char *cpp_linux = "c4s_user.cpp c4s_builder_gcc.cpp";
 
 // ==========================================================================================
-bool documentation(ostream *log)
+int documentation(ostream *log)
 {
     cout << "Creating documentation\n";
     try{
         if(process ("doxygen", "c4s-doxygen.dg",log)(10)) {
             cout << "Doxygen error.\n";
-            return false;
+            return 1;
         }
     }catch(c4s_exception re){
         cerr << "Error: "<<re.what()<<'\n';
-        return false;
+        return 1;
     }
     cout << "OK\n";
-    return true;
-}
-
-// ==========================================================================================
-int publish()
-{
-    cout << "Packaging sources and doc\n";
-    path source;
-    source.read_cwd();
-    path target("~/mnt/mc/web/cpp4scripts/");
-    if(!target.exists())
-    {
-        cerr << "Target dir "<<target.get_dir()<<" does not exist.\n";
-        return 1;
-    }
-
-    try{
-        string sources("c4s-");
-        sources += args.get_value("-v");
-        sources += ".zip";
-        path source_zip(sources);
-        if(source_zip.exists())
-            source_zip.rm();
-        sources += " cpp4scripts.cpp cpp4scripts.hpp";
-        process("zip", sources.c_str())();
-
-        path doc_zip("c4s-doc.zip");
-        process("zip", "-r c4s-doc.zip c4s-doc")();
-        doc_zip.cp(target, PCF_MOVE|PCF_FORCE);
-
-        cout << "Copying doc and samples to html dir\n";
-        source += "c4s-doc/";
-        target += "c4s-doc/";
-        source.cp(target, PCF_RECURSIVE|PCF_FORCE);
-
-        source.rewind();
-        target.rewind();
-        source += "samples/";
-        target += "samples/";
-        if(!target.dirname_exists())
-            target.mkdir();
-        path_list cpp(source,"*.cpp");
-        cpp.copy_to(target,PCF_FORCE);
-    }catch(c4s_exception ce){
-        cout << "Publish exception - " << ce.what() << '\n';
-        return 1;
-    }
-    cout << "Completed!\n";
     return 0;
 }
 
@@ -118,7 +70,7 @@ int build(ostream *log)
     cout << "Building library\n";
     if(args.is_set("-u") && builder::update_build_no("c4s-version.cpp"))
         cout << "Warning: Unable to update build number.\n";
-    int flags = BUILD_LIB|BUILD_PAD_NAME;
+    int flags = BUILD_LIB;
     if(!args.is_set("-deb") && !args.is_set("-rel")) {
 #ifdef __APPLE__
         // This piece of code is for Xcode which passes build options via environment.
@@ -152,7 +104,12 @@ int build(ostream *log)
     path_list cppFiles(cpp_list,' ');
     cppFiles.add(cpp_linux,' ');
 
-    builder *make = new builder_gcc(&cppFiles,"c4s",log,flags);
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
+    builder *make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
     if(args.is_set("-t"))
         make->add_comp("-DC4S_DEBUGTRACE");
     make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
@@ -203,7 +160,7 @@ int build(ostream *log)
     cout << "Building library\n";
     if(args.is_set("-u") && builder::update_build_no("c4s-version.cpp"))
         cout << "Warning: Unable to update build number\n";
-    flags = BUILD_LIB|BUILD_PAD_NAME;
+    flags = BUILD_LIB;
     flags |= args.is_set("-deb") ? BUILD_DEBUG:BUILD_RELEASE;
     if(args.is_set("-V"))
         flags |= BUILD_VERBOSE;
@@ -212,8 +169,13 @@ int build(ostream *log)
 
     path_list cppFiles(cpp_list,' ');
     cppFiles.add(cpp_win,' ');
-    const char* libname = args.is_set("-xp") ? "c4s-xp" : "c4s";
-    builder *make = new builder_vc(&cppFiles,libname,log,flags);
+
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
+    builder *make = new builder_vc(&cppFiles,target.c_str(),log,flags);
     make->add_comp("/DC4S_LIB_BUILD /D_CRT_SECURE_NO_WARNINGS");
     if(args.is_set("-xp"))
         make->add_comp("/D_WIN32_WINNT=0x0501");
@@ -287,13 +249,9 @@ int install()
     // Set up the target directories
     if(args.is_set("-V")) cout << "Creating target directories\n";
     path inc(inst_root);
-    path lib(inst_root);
     inc += "include/cpp4scripts/";
-    lib += "lib/";
     if(!inc.dirname_exists())
         inc.mkdir();
-    if(!lib.dirname_exists())
-        lib.mkdir();
 
     // Copy sources
     if(args.is_set("-V")) {
@@ -305,40 +263,59 @@ int install()
         const char *archtxt = arch==BUILD_X64?"64-bit":"32-bit";
         cout << "Running in "<<archtxt<<" environment\n";
     }
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
+    }
+
 #if defined(__linux) || defined(__APPLE__)
     sources.add(cpp_linux,' ');
-    path dlib(builder_gcc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_DEBUG).get_target_path());
-    path rlib(builder_gcc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_RELEASE).get_target_path());
+    path dlib(builder_gcc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
+    path rlib(builder_gcc(0,target.c_str(),0,BUILD_LIB|BUILD_RELEASE).get_target_path());
     path make_name(builder_gcc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
 #else
     sources.add(cpp_win,' ');
-    path dlib(builder_vc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_DEBUG).get_target_path());
-    path rlib(builder_vc(0,"c4s",0,BUILD_LIB|BUILD_PAD_NAME|BUILD_RELEASE).get_target_path());
+    path dlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
+    path rlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_RELEASE).get_target_path());
     path make_name(builder_vc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
 #endif
-    path_list libs;
-    if(dlib.exists())
-        libs += dlib;
-    if(rlib.exists())
-        libs += rlib;
-    else
-    if(libs.size()==0) {
+    int lib_count=0;
+    if(dlib.exists()) {
+        path lib(inst_root);
+        lib+="lib-d/";
+        if(!lib.dirname_exists())
+            lib.mkdir();
+        dlib.cp(lib,PCF_FORCE);
+        if(args.is_set("-V"))
+            cout<<"Copied "<<dlib.get_path()<<" to "<<lib.get_path()<<'\n';
+        lib_count++;
+    }
+    if(rlib.exists()) {
+        path lib(inst_root);
+        lib+="lib/";
+        if(!lib.dirname_exists())
+            lib.mkdir();
+        rlib.cp(lib,PCF_FORCE);
+        if(args.is_set("-V"))
+            cout<<"Copied "<<rlib.get_path()<<" to "<<lib.get_path()<<'\n';
+        lib_count++;
+    }
+    if(lib_count==0) {
         cout << "WARNING: Neither of the -deb or -rel libraries will be copied. Sure they are built?\n";
+        cout << "Searched:\n";
+        cout << "  "<<dlib.get_path()<<'\n';
+        cout << "  "<<rlib.get_path()<<'\n';
     }
     sources.set_dir(c4s_home);
     path_list headers(args.exe,"*.hpp");
     sources.copy_to(inc,PCF_FORCE);
     headers.copy_to(inc,PCF_FORCE);
 
-    for(pi=libs.begin(); pi!=libs.end(); pi++) {
-        pi->cp(lib,PCF_FORCE);
-        cout << "Copying "<<pi->get_path()<<" to "<<lib.get_path()<<'\n';
-    }
-
     // Copy makec4s utility
     if(args.is_set("-V")) cout << "Copying makec4s\n";
 #if defined(__linux) || defined(__APPLE__)
-    if(lib.get_dir().find("local") != string::npos)
+    if(inst_root.get_dir().find("local") != string::npos)
         lbin.set("/usr/local/bin/");
     else
         lbin.set("/usr/bin/");
@@ -365,23 +342,20 @@ int install()
 // ==========================================================================================
 int main(int argc, char **argv)
 {
-    ofstream *filelog=0;
-
     args += argument("-deb",  false,"Create debug version of library.");
     args += argument("-rel",  false,"Create release version of library.");
-    args += argument("-V",    false,"Verbose mode.");
+    args += argument("-l",    true,  "Environment label to apend to library name.");
     args += argument("-t",    false,"Add TRACE define into target build that enables lots of debug output.");
     args += argument("-u",    false, "Updates the build number (last part of version number).");
 #ifdef _WIN32
-    args += argument("-xp",   false,"Make a build suitable for WindowsXP.");
     args += argument("-wda",  false,"Wait for debugger to attach, i.e. wait for a keypress.");
 #endif
     args += argument("-CXX",  false, "Reads the compiler name from CXX environment variable.");
-    args += argument("-publish", true, "Publish project as version VALUE.");
     args += argument("-doc",  false,"Create docbook documentation only.");
     args += argument("-clean",false,"Clean up temporary files.");
     args += argument("-install",true,"Installs the library to given root directory. include- and lib-directories are created if necessary.");
     args += argument("-v",   false,"Shows the version nubmer and exists.");
+    args += argument("-V",    false,"Verbose mode.");
     args += argument("-?",   false,"Shows this help");
 
     cout << "CPP4Scripts Builder Program. "<<CPP4SCRIPTS_VERSION<<' '<<get_build_type()<<'\n';
@@ -415,22 +389,15 @@ int main(int argc, char **argv)
         return 1;
     }
     ostream *log = &cout;
-    if(args.is_set("-publish") || args.is_set("-doc")) {
-        if(!documentation(log) || args.is_set("-doc"))
-            return 0;
-        return publish();
-    }
+    if(args.is_set("-doc"))
+        return documentation(log);
 
     int rv = 0;
     try {
         rv = build(log);
     }catch(c4s_exception ce) {
         cout << "Build failed: "<<ce.what()<<'\n';
-        if(filelog)
-            filelog->close();
         return 1;
     }
-    if(filelog)
-        filelog->close();
     return rv;
 }
