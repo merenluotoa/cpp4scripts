@@ -82,7 +82,7 @@ c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_
     if(args)
         c_opts << args << ' ';
     else
-        c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef ";
+        c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef -Wno-unused-result -std=c++14 ";
     if(is_set(BUILD_DEBUG)) {
         c_opts << "-ggdb -O0 -D_DEBUG ";
         if(!is_set(BUILD_LIB)) {
