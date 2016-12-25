@@ -998,7 +998,7 @@ bool c4s::path::outdated(path &target, bool check_inside)
     if( !target.exists() )
         return true;
     if(!change_time)
-        update_time();
+        read_changetime();
     try{
         if(compare_times(target)>0)
             return true;
@@ -1056,7 +1056,7 @@ bool c4s::path::outdated(path_list &lst)
     if(!exists())
        return true;
     if(!change_time)
-        update_time();
+        read_changetime();
     list<path>::iterator pi;
     for(pi=lst.begin(); pi!=lst.end(); pi++)
     {
@@ -1075,7 +1075,7 @@ int c4s::path::compare_times(path &target) const
 */
 {
     if(!target.change_time)
-        target.update_time();
+        target.read_changetime();
     if(change_time < target.change_time)
         return -1;
     if(change_time > target.change_time)
@@ -1084,14 +1084,14 @@ int c4s::path::compare_times(path &target) const
 }
 
 // ==================================================================================================
-void c4s::path::update_time()
+TIME_T c4s::path::read_changetime()
 {
 #if defined(__linux) || defined(__APPLE__)
     struct stat statBuffer;
     if(stat (get_path().c_str(), &statBuffer))
     {
         ostringstream os;
-        os << "path::update_time - Unable to find source file:"<<get_path().c_str();
+        os << "path::read_changetime - Unable to find source file:"<<get_path().c_str();
         throw path_exception(os.str());
     }
     change_time = statBuffer.st_mtime;
@@ -1101,17 +1101,18 @@ void c4s::path::update_time()
     if(hfile == INVALID_HANDLE_VALUE)
     {
         ostringstream os;
-        os << "path::update_time - Unable to find source file:"<<get_path().c_str();
+        os << "path::read_changetime - Unable to find source file:"<<get_path().c_str();
         throw path_exception(os.str());
     }
     if(!GetFileTime(hfile,0,0,(LPFILETIME)&change_time))
     {
         ostringstream os;
-        os << "path::update_time - Unable to find source file:"<<get_path().c_str();
+        os << "path::read_changetime - Unable to find source file:"<<get_path().c_str();
         throw path_exception(os.str());
     }
     CloseHandle(hfile);
 #endif
+    return change_time;
  }
 
 // ==================================================================================================

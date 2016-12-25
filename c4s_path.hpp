@@ -29,6 +29,11 @@ Copyright (c) Menacon Ltd
 //     typedef int SSIZE_T;
 //   #endif
 // #endif
+#if defined(__linux) || defined(__APPLE__)
+  #define TIME_T time_t
+#else
+  #define TIME_T __int64
+#endif
 
 namespace c4s {
     class path_list;
@@ -215,6 +220,8 @@ namespace c4s {
         //! Changes file / directory permissions.
         void chmod(int mod=-1);
 
+        //! Reads the last change time from the disk.
+        TIME_T read_changetime();
         //! Returns true if this file is newer than the given file.
         bool outdated(path &p, bool checkInside=false);
         //! Checks the outdated status against a list of files.
@@ -232,8 +239,6 @@ namespace c4s {
         // SIZE_T search_text(const string &needle);
         void dump(ostream &);
     private:
-        //! Reads the last change time from the disk.
-        void update_time();
         //! Copies attributes and permissions from this file to target.
         void copy_mode(const path &target);
         //! Recursive copy from this to target.
@@ -242,10 +247,8 @@ namespace c4s {
 #if defined(__linux) || defined(__APPLE__)
         user *owner;        //!< Pointer to User and group for this file's permissions
         int  mode;          //!< Path/file access mode.
-        time_t change_time; //!< Time that the file was last changed. Zero until internal function update_time has been called.
-#else
-        __int64 change_time;
 #endif
+        TIME_T change_time; //!< Time that the file was last changed. Zero until internal function update_time has been called.
         string dir;         //!< directory part of the path. Directory needs to end at the directory separator.
         string base;        //!< Base name (file name) part of the path.
         bool flag;          //!< General purpose flag for application use.
