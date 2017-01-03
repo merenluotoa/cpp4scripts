@@ -1,7 +1,8 @@
-build-lnxd
-build-lnxr
-build-osxd
-build-osxr
+debug/*
+release/*
 builder-*
+gitlog
+makec4s
 makec4s-*
-git-commit-log
+makec4s.dSYM
+

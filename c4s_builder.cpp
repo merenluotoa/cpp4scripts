@@ -41,12 +41,17 @@ c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, con
    \param _flags Combination of build flags
    \param subsys Optional subsystem name.
 */
-    : log(_log), name(_name), build_dir("build"), flags(_flags)
+    : log(_log), name(_name), flags(_flags)
 {
     sources = _sources;
     flags |= get_arch();
+    if(is_set(BUILD_PAD_NAME)) {
+        build_dir = "build";
+        pad_name(build_dir, subsys, flags);
+    }
+    else
+        build_dir = is_set(BUILD_DEBUG)?"debug":"release";
 
-    pad_name(build_dir, subsys, flags);
     if(log) {
         compiler.pipe_to(log);
         linker.pipe_to(log);

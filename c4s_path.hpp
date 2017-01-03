@@ -30,7 +30,7 @@ Copyright (c) Menacon Ltd
 //   #endif
 // #endif
 #if defined(__linux) || defined(__APPLE__)
-  #define TIME_t time_t
+  #define TIME_T time_t
 #else
   #define TIME_T __int64
 #endif
@@ -247,12 +247,8 @@ namespace c4s {
 #if defined(__linux) || defined(__APPLE__)
         user *owner;        //!< Pointer to User and group for this file's permissions
         int  mode;          //!< Path/file access mode.
-        time_t change_time; //!< Time that the file was last changed. Zero until internal function update_time has been called.
-  #define TIME_t time_t
-#else
-        __int64 change_time;
-  #define TIME_T __int64
 #endif
+        TIME_T change_time; //!< Time that the file was last changed. Zero until internal function update_time has been called.
         string dir;         //!< directory part of the path. Directory needs to end at the directory separator.
         string base;        //!< Base name (file name) part of the path.
         bool flag;          //!< General purpose flag for application use.
