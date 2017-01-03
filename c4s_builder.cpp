@@ -50,7 +50,7 @@ c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, con
         pad_name(build_dir, subsys, flags);
     }
     else
-        build_dir = is_set(BUILD_DEBUG)?"debug":"relase";
+        build_dir = is_set(BUILD_DEBUG)?"debug":"release";
 
     if(log) {
         compiler.pipe_to(log);
