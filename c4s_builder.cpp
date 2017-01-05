@@ -49,9 +49,13 @@ c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, con
         build_dir = "build";
         pad_name(build_dir, subsys, flags);
     }
-    else
+    else {
         build_dir = is_set(BUILD_DEBUG)?"debug":"release";
-
+        if(subsys) {
+            build_dir += subsys;
+            name += subsys;
+        }
+    }
     if(log) {
         compiler.pipe_to(log);
         linker.pipe_to(log);

@@ -18,5 +18,5 @@ PDF_COMP=/IC:\Devtools\PDFlib-8.0.5\bind\cpp /IC:\Devtools\PDFlib-8.0.5\pdflib_$
 PDF_LINK=/LIBPATH:C:\Devtools\PDFlib-8.0.5\pdflib_$$ pdflib.lib
 # --------
 DDB_COMP=/IC:\Devtools\build$$\include /IC:\Devtools\build$$\include\directdb /IC:\Devtools\build$$\include\libpq /DUSE_SSL
-DDB_LINK=/LIBPATH:C:\Devtools\build$$\lib libeay32.lib ssleay32.lib libpq.lib
+DDB_LINK=/LIBPATH:C:\Devtools\build$$\lib libpq.lib
 # --------
