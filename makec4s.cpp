@@ -7,9 +7,6 @@ This is built by Cpp4Script builder. Please build parameters from builder.cpp.
 With -s parameter you may specify other single source Cpp4Script files for compilation.
 These executables will be placed into your current directory.
 
-Version 0.14
-- Allow script files to be named with c4s-extension.
-
 */
 // Copyright (c) Menacon Oy
 /*****************************************************************************************
@@ -83,10 +80,15 @@ int main(int argc, char **argv)
     args += argument("-new", true , "Make a new c4s-template file with VALUE as the name.");
 #ifdef _WIN32
     args += argument("-sr", false, "Makes VC to build against Microsoft static runtime (MT).");
+    args += argument("-c4s",true,  "Path where Cpp4Scripts is installed. If not defined, then %C4S% is tried.");
+#else
+    args += argument("-c4s",true,  "Path where Cpp4Scripts is installed. If not defined, then $C4S is tried and then '/usr/local/'");
 #endif
     args += argument("-CXX",false, "Requests the makec4s to read the C++ compiler name from CXX environment variable.");
     args += argument("-a",  false, "Use the 'all inclusive' sources i.e. without the CPP4Scripts library.");
+    args += argument("-inc",true,  "External inlcude file to add to the build.");
     args += argument("-l",  true,  "Environment label to apend to executable name.");
+    args += argument("-lib",true,  "External library to add to the link command");
     args += argument("-m",  true,  "Set the VALUE as timeout (seconds) for the compile.");
     //args += argument("-p",  false, "Pad the final executable name with environment and build type.");
     args += argument("-t",  false, "Enable C4S_DEBUGTRACE define for tracing the cpp4scripts code.");
@@ -228,7 +230,9 @@ int main(int argc, char **argv)
         make = new builder_vc(&sources,target.c_str(),&cout,flags);
         if(args.is_set("-sr"))
             ((builder_vc*)make)->setStaticRuntime();
-        if(!get_env_var("C4S",c4svar))
+        if(args.is_set("-c4s"))
+            make->set_variable("C4S",args.get_value("-c4s"));
+        else if(!get_env_var("C4S",c4svar))
             throw c4s_exception("C4S variable undefined. Library location unknown.");
         make->add_comp("/I$(C4S)\\include\\cpp4scripts");
         make->add_link("Advapi32.lib");
@@ -250,7 +254,9 @@ int main(int argc, char **argv)
         make = new builder_gcc(&sources,target.c_str(),&cout,flags);
         // Get C4S location
         string c4svar;
-        if(!get_env_var("C4S",c4svar))
+        if(args.is_set("-c4s"))
+            make->set_variable("C4S",args.get_value("-c4s"));
+        else if(!get_env_var("C4S",c4svar))
             make->set_variable("C4S","/usr/local");
         make->add_comp("-x c++ -fno-rtti -I$(C4S)/include/cpp4scripts");
         if(args.is_set("-t"))
@@ -268,6 +274,10 @@ int main(int argc, char **argv)
             cout << "Only Windows, Linux and OSX environments are supported.\n";
             return 1;
         }
+        if(args.is_set("-inc"))
+            make->add_comp(args.get_value("-inc").c_str());
+        if(args.is_set("-lib"))
+            make->add_link(args.get_value("-lib").c_str());
         make->set_timeout(timeout);
         if(make->build()) {
             cout << "Build failed.\n";

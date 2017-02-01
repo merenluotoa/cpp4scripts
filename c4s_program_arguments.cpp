@@ -110,7 +110,7 @@ void c4s::program_arguments::initialize(int argc, char *argv[], int min_args)
                 pi->set_on();
                 if(pi->is_two_part())
                 {
-                    if(argi+1 >= argc || argv[argi+1][0]=='-')
+                    if(argi+1 >= argc)
                     {
                         ostringstream os;
                         os << "Arguments initialize - Missing value for argument: " << pi->get_text() << '\n';
