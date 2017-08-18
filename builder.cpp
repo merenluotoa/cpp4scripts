@@ -41,7 +41,7 @@ program_arguments args;
 path compile_dir;
 
 const char *cpp_list = "c4s_builder.cpp c4s_logger.cpp c4s_path.cpp c4s_path_list.cpp " \
-    "c4s_process.cpp c4s_program_arguments.cpp c4s_util.cpp c4s_variables.cpp";
+    "c4s_process.cpp c4s_program_arguments.cpp c4s_util.cpp c4s_variables.cpp c4s_exception.cpp";
 const char *cpp_win = "c4s_builder_vc.cpp c4s_builder_ml.cpp";
 const char *cpp_linux = "c4s_user.cpp c4s_builder_gcc.cpp";
 
