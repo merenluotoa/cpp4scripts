@@ -154,6 +154,8 @@ namespace c4s {
         int get_pid() { return pid; }
         //! Attaches this object to running process.
         void attach(int pid);
+        //! Attaches this object to running process with pid in named pid-file
+        void attach(const path &pid_file);
 #else
         //! Returns the pid for this process.
         HANDLE get_pid() { return pid; }

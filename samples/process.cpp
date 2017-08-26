@@ -1,5 +1,5 @@
 /*******************************************************************************
-c4s-process.cpp
+process.cpp
 
 This is a sample for Cpp4Scripting library. It demonstrates the use of program
 arguments and processes.
@@ -134,11 +134,24 @@ void test8()
     cli.wait_for_exit(15);
     cout << "Received from client:"<<os.str()<<'\n';
 }
+// ..........................................................................................
+void test9()
+{
+    process cli;
+    try {
+        cli.attach(path(args.get_value("-pf")));
+        cli.stop_daemon();
+        cout<<"Stopped\n";
+    }
+    catch(process_exception pe) {
+        cout <<"Failed: "<<pe.what()<<endl;
+    }
+}
 // ------------------------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
-    const int tmax = 8;
-    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4, &test5, &test6, &test7, &test8 };
+    const int tmax = 9;
+    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4, &test5, &test6, &test7, &test8, &test9 };
 
     const char *title = "Cpp4Scripts - Process sample and test program";
     const char *info = "Following tests have been defined:\n"               \
@@ -149,12 +162,14 @@ int main(int argc, char **argv)
         " 5 = Run test client with couple of simple params. Pipe to stdout.\n" \
         " 6 = Test the use of execa - running same process with varied arguments.\n" \
         " 7 = Test the use of process user (linux only)\n"              \
-        " 8 = Test the input stream with client.\n";
+        " 8 = Test the input stream with client.\n"\
+        " 9 = Terminate process with pid file (-pf)\n";
 
     args += argument("-t",  true, "Sets VALUE as the test to run.");
     args += argument("-l", false, "Append -l parameter to ls command in test 1.");
     args += argument("-f", false, "Feed child.txt into the client-bin in test 8.");
     args += argument("-u", true,  "Set the user for test 3");
+    args += argument("-pf", true, "Test 9: name the pid-file.");
 
     try{
         args.initialize(argc,argv,1);
@@ -181,6 +196,6 @@ int main(int argc, char **argv)
         cerr << "Process failure: "<<pe.what()<<endl;
         return 1;
     }
-    cout << "c4s-process completed.\n";
+    cout << "test completed.\n";
     return 0;
 }

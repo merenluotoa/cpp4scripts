@@ -20,6 +20,7 @@ Copyright (c) Menacon Ltd, Finland
 *******************************************************************************/
 #ifdef C4S_LIB_BUILD
  #include <string.h>
+ #include <iostream>
  #if defined(__linux) || defined(__APPLE__)
   #include <sys/wait.h>
   #include <sys/types.h>
@@ -855,14 +856,36 @@ void c4s::process::attach(int _pid)
     pid = _pid;
     last_ret_val = 0;
     daemon = true;
-    ostringstream os;
-    os << "/proc/"<<pid<<"/exe";
-    if(!path(os.str()).exists()) {
-        os.str("");
+    if(!is_running()) {
+        ostringstream os;
         os << "process::attach - Cannot attach. Process with PID ("<<pid<<") not found.";
         throw process_exception(os.str());
     }
 }
+void c4s::process::attach(const path &pid_file)
+{
+    long attach_pid;
+    string line;
+    ostringstream os;
+    if(!pid_file.exists()) {
+        os<<"process::attach - pid file "<<pid_file.get_path()<<" not found";
+        throw process_exception(os.str());
+    }
+    ifstream pf(pid_file.get_path().c_str());
+    if(!pf) {
+        os<<"process::attach - Unable to open pid file "<<pid_file.get_path();
+        throw process_exception(os.str());
+    }
+    std::getline(pf, line, '\n');
+    attach_pid = strtol(line.c_str(), 0, 10);
+    if(attach_pid)
+        attach((int)attach_pid);
+    else {
+        os<<"process::attach - Unable to read pid from file "<<pid_file.get_path();
+        throw process_exception(os.str());
+    }
+}
+
 #endif // linux || Apple
 
 // ==================================================================================================
@@ -1017,11 +1040,8 @@ bool c4s::process::is_running()
     if(!pid)
         return false;
 #if defined(__linux) || defined(__APPLE__)
-    int wait_val = waitpid(pid, &last_ret_val, WNOHANG);
-    if(!wait_val)
+    if(kill(pid, 0) == 0)
         return true;
-    if(wait_val!= pid)
-        throw process_exception("process::is_running - Process wait failure");
 #else
     DWORD rv;
     GetExitCodeProcess(pid,&rv);
