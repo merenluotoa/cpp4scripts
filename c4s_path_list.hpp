@@ -108,7 +108,7 @@ namespace c4s {
         path front() { return plist.front(); }
         //! Returns the last path in the list.
         path back()  { return plist.back(); }
-        //! Sorts files in alphabetical order. (Only base part is considered.)
+        //! Sorts files in alphabetical order. (PARTIAL = Only base part is considered.)
         enum SORTTYPE { ST_PARTIAL, ST_FULL };
         void sort(SORTTYPE);
 

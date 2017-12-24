@@ -403,10 +403,15 @@ string c4s::path_list::str(const char separator, bool baseonly)
     return bunch;
 }
 // ==================================================================================================
-// sort functions should return ints.
 bool compare_bases(c4s::path &fp, c4s::path &sp)
 {
+#ifdef _DEBUG
+    if(fp.compare(sp, CMP_BASE)==-1)
+        return true;
+    return false;
+#else
     return fp.compare(sp, CMP_BASE)==-1 ? true : false;
+#endif
 }
 bool compare_full(c4s::path &fp, c4s::path &sp)
 {

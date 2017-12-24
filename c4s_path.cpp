@@ -396,6 +396,8 @@ void c4s::path::cd(const char *to)
 */
 {
     ostringstream os;
+    if(!to || to[0]==0)
+        return;
 #if defined(__linux) || defined(__APPLE__)
     if(chdir(to)) {
         os << "Unable chdir to:"<<to<<" Error:"<<strerror(errno);

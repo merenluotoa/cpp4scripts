@@ -843,7 +843,7 @@ void c4s::process::set_user(user *_owner)
         owner=0;
     }
 }
-
+// ------------------------------------------------------------------------------------------
 void c4s::process::attach(int _pid)
 /*! Attaching allows developer to stop running processes by first attaching object to a process
   and then calling stop-function. Exception is thrown if pid is not found. If process alredy is running
@@ -862,10 +862,10 @@ void c4s::process::attach(int _pid)
         throw process_exception(os.str());
     }
 }
+// ------------------------------------------------------------------------------------------
 void c4s::process::attach(const path &pid_file)
 {
-    long attach_pid;
-    string line;
+    long attach_pid=0;
     ostringstream os;
     if(!pid_file.exists()) {
         os<<"process::attach - pid file "<<pid_file.get_path()<<" not found";
@@ -876,8 +876,7 @@ void c4s::process::attach(const path &pid_file)
         os<<"process::attach - Unable to open pid file "<<pid_file.get_path();
         throw process_exception(os.str());
     }
-    std::getline(pf, line, '\n');
-    attach_pid = strtol(line.c_str(), 0, 10);
+    pf>>attach_pid;
     if(attach_pid)
         attach((int)attach_pid);
     else {
