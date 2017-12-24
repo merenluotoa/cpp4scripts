@@ -843,7 +843,7 @@ void c4s::process::set_user(user *_owner)
         owner=0;
     }
 }
-
+// ------------------------------------------------------------------------------------------
 void c4s::process::attach(int _pid)
 /*! Attaching allows developer to stop running processes by first attaching object to a process
   and then calling stop-function. Exception is thrown if pid is not found. If process alredy is running
@@ -862,10 +862,10 @@ void c4s::process::attach(int _pid)
         throw process_exception(os.str());
     }
 }
+// ------------------------------------------------------------------------------------------
 void c4s::process::attach(const path &pid_file)
 {
-    long attach_pid;
-    string line;
+    long attach_pid=0;
     ostringstream os;
     if(!pid_file.exists()) {
         os<<"process::attach - pid file "<<pid_file.get_path()<<" not found";
@@ -876,8 +876,7 @@ void c4s::process::attach(const path &pid_file)
         os<<"process::attach - Unable to open pid file "<<pid_file.get_path();
         throw process_exception(os.str());
     }
-    std::getline(pf, line, '\n');
-    attach_pid = strtol(line.c_str(), 0, 10);
+    pf>>attach_pid;
     if(attach_pid)
         attach((int)attach_pid);
     else {
@@ -1066,14 +1065,18 @@ void c4s::process::stop_daemon()
         return;
     // Send termination signal.
     if(kill(pid,SIGTERM)) {
-        os << "process::stop: kill(pid,SIGTERM) error:"<<strerror(errno) <<'\n';
+#ifdef C4S_DEBUGTRACE
+      cerr << "process::stop: kill(pid,SIGTERM) error:"<<strerror(errno) <<'\n';
+#else
+      os << "process::stop: kill(pid,SIGTERM) error:"<<strerror(errno) <<'\n';
+#endif
         throw process_exception(os.str());
     }
     // Lets wait for a while:
     struct timespec ts_delay, ts_remain;
     ts_delay.tv_sec = 0;
-    ts_delay.tv_nsec = 200000000L;
-    int rv, count=10;
+    ts_delay.tv_nsec = 400000000L;
+    int rv, count=20;
     do {
         nanosleep(&ts_delay,&ts_remain);
         rv = kill(pid,0);
@@ -1096,8 +1099,12 @@ void c4s::process::stop_daemon()
         if(count==0)
             throw process_exception("process::stop_daemon - Failed, daemon sill running.");
     }
-    if(errno!=ESRCH)
+    if(errno!=ESRCH) {
+#ifdef C4S_DEBUGTRACE
+      cerr << "process::stop_daemon - error stopping daemon\n";
+#endif
         throw process_exception("process::stop_daemon - error stopping daemon");
+    }
     pid = 0;
 #endif
 }
@@ -1115,6 +1122,10 @@ void c4s::process::stop()
     cerr << "process::stop - name="<<command.get_base()<<'\n';
 #endif
     if(pid) {
+      if(daemon) {
+	stop_daemon();
+	return;
+      }
 #if defined(__linux) || defined(__APPLE__)
         ostringstream os;
     AGAIN:
@@ -1143,12 +1154,8 @@ void c4s::process::stop()
                 goto AGAIN;
             else if(errno == ECHILD) {
                 // Process was probably attached and hence this is not a parent for the process.
-                if(daemon)
-                    stop_daemon();
-                else {
-                    os << "process::stop: waitpid error:"<<strerror(errno) <<'\n';
-                    throw process_exception(os.str());
-                }
+	      os << "process::stop: waitpid error:"<<strerror(errno) <<'\n';
+	      throw process_exception(os.str());
             }
             else{
                 throw process_exception("Process::stop: Invalid argument to wait-function.");

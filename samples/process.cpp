@@ -140,7 +140,7 @@ void test9()
     process cli;
     try {
         cli.attach(path(args.get_value("-pf")));
-        cli.stop_daemon();
+        cli.stop();
         cout<<"Stopped\n";
     }
     catch(process_exception pe) {

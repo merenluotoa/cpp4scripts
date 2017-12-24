@@ -406,11 +406,11 @@ string c4s::path_list::str(const char separator, bool baseonly)
 // sort functions should return ints.
 bool compare_bases(c4s::path &fp, c4s::path &sp)
 {
-    return fp.compare(sp, CMP_BASE)==-1 ? true : false;
+  return fp.compare(sp, CMP_BASE)<0 ? true : false;
 }
 bool compare_full(c4s::path &fp, c4s::path &sp)
 {
-    return fp.compare(sp, CMP_DIR|CMP_BASE)==-1 ? true : false;
+    return fp.compare(sp, CMP_DIR|CMP_BASE)<0 ? true : false;
 }
 void c4s::path_list::sort(SORTTYPE st)
 {

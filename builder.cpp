@@ -34,8 +34,8 @@ Copyright (c) Menacon Ltd, Finland
 
 #include <sstream>
 #include "c4s_all.hpp"
-#include "c4s-version.cpp"
-using namespace c4s;
+#include "c4s_version.cpp"
+using namespacen c4s;
 
 program_arguments args;
 path compile_dir;
@@ -68,7 +68,7 @@ int build(ostream *log)
 {
     bool debug = false;
     cout << "Building library\n";
-    if(args.is_set("-u") && builder::update_build_no("c4s-version.cpp"))
+    if(args.is_set("-u") && builder::update_build_no("c4s_version.cpp"))
         cout << "Warning: Unable to update build number.\n";
     int flags = BUILD_LIB;
     if(!args.is_set("-deb") && !args.is_set("-rel")) {
@@ -158,7 +158,7 @@ int build(ostream *log)
     int rv=0,flags;
 
     cout << "Building library\n";
-    if(args.is_set("-u") && builder::update_build_no("c4s-version.cpp"))
+    if(args.is_set("-u") && builder::update_build_no("c4s_version.cpp"))
         cout << "Warning: Unable to update build number\n";
     flags = BUILD_LIB;
     flags |= args.is_set("-deb") ? BUILD_DEBUG:BUILD_RELEASE;
