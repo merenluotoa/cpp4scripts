@@ -35,7 +35,7 @@ Copyright (c) Menacon Ltd, Finland
 #include <sstream>
 #include "c4s_all.hpp"
 #include "c4s_version.cpp"
-using namespacen c4s;
+using namespace c4s;
 
 program_arguments args;
 path compile_dir;

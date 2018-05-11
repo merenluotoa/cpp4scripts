@@ -192,7 +192,7 @@ c4s::logbase::str2level(const char *name)
 {
     const int MAX=8;
     LOG_LEVEL level_value[MAX] = { LL_NONE, LL_TRACE, LL_DEBUG, LL_INFO, LL_NOTICE, LL_WARNING, LL_ERROR, LL_CRITICAL };
-    for(register int ndx=0; ndx<MAX; ndx++) {
+    for(int ndx=0; ndx<MAX; ndx++) {
         if(!_stricmp(name,g_level_names[ndx]))
             return level_value[ndx];
     }
