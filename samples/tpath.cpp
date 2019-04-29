@@ -235,12 +235,23 @@ void test11()
         cout << "search-replace failed: "<<pe.what()<<'\n';
     }
 }
+// ------------------------------------------------------------------------------------------
+void test12()
+{
+    path p1("/var/tmp/","test",".txt");
+    string d("/var/tmp/");
+    string b("test");
+    string e(".txt");
+    path p2(d,b,e);
 
+    p1.dump(cout);
+    p2.dump(cout);
+}
 // ==========================================================================================
 int main(int argc, char **argv)
 {
-    const int tmax = 11;
-    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4, &test5, &test6, &test7, &test8, &test9, &test10, &test11};
+    const int tmax = 12;
+    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4, &test5, &test6, &test7, &test8, &test9, &test10, &test11, &test12};
 
     const char *title = "Cpp4Scripts - Path sample and test program";
     const char *info  = "Following tests have been defined:\n"\

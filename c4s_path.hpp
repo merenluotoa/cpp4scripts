@@ -74,7 +74,8 @@ namespace c4s {
         //! Constructs path from single string.
         path(const string &p);
         //! Path constructor. Combines path from directory, base and extension.
-        path(const string &d, const string &b, const char *e);
+        path(const string &d, const string &b, const string &e);
+        path(const char *d, const char *b, const char *e);
         //! Constructs a path from directory and base
         path(const string &d, const string &b);
         //! Constructs a path from directory and base
@@ -91,7 +92,7 @@ namespace c4s {
         //! Sets path so that it equals another path.
         void operator=(const path &p) { dir=p.dir; base=p.base; change_time=p.change_time; }
         //! Sets the path from pointer to const char.
-        void operator=(const char *p);
+        void operator=(const char *p) { set(string(p)); }
         //! Sets the path from constant string.
         void operator=(const string &p) { set(p); }
         //! Synonym for merge() function
@@ -111,7 +112,7 @@ namespace c4s {
         //! Returns the base part with extension.
         string get_base() const { return base; }
         //! Returns the base and swaps its extension to the one given as parameter.
-        string get_base(const char *ext) const;
+        string get_base(const string &ext) const;
         //! Returns the base without the extension
         string get_base_plain() const;
         //! Returns the base or if it is empty the last directory entry.
@@ -134,7 +135,9 @@ namespace c4s {
         //! Sets the path components by parsing the given string
         void set(const string &p);
         //! Sets path attributes from given directory name, base name and optional extension
-        void set(const string &d, const string &b, const char *e);
+        void set(const string &d, const string &b, const string &e);
+        void set(const char *d, const char *b, const char *e);
+
         //! Sets path attributes from given directory name and base name.
         void set(const string &d, const string &b);
         //! Changes current working directory to given path.
@@ -239,6 +242,8 @@ namespace c4s {
         // SIZE_T search_text(const string &needle);
         void dump(ostream &);
     private:
+        //! Common functionality for all constructors
+        void init_common();
         //! Copies attributes and permissions from this file to target.
         void copy_mode(const path &target);
         //! Recursive copy from this to target.

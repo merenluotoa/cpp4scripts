@@ -37,8 +37,8 @@ Copyright (c) Menacon Ltd, Finland
   #include "c4s_util.hpp"
  using namespace c4s;
 #endif
-// ==================================================================================================
-c4s::path::path()
+// ------------------------------------------------------------------------------------------
+void c4s::path::init_common()
 {
     change_time=0;
     flag = false;
@@ -46,6 +46,11 @@ c4s::path::path()
     owner = 0;
     mode = -1;
 #endif
+}
+// ==================================================================================================
+c4s::path::path()
+{
+    init_common();
 }
 
 // ==================================================================================================
@@ -63,11 +68,10 @@ c4s::path::path(const path &p)
 // ==================================================================================================
 c4s::path::path(const path &_dir, const char *_base)
 {
+    init_common();
     dir=_dir.dir;
     if(_base)
         base=_base;
-    change_time=0;
-    flag = false;
 #if defined(__linux) || defined(__APPLE__)
     owner = _dir.owner;
     mode = _dir.mode;
@@ -80,46 +84,34 @@ c4s::path::path(const string &p)
   separators are detected then the dir is empty.
   \param init Path name to initialize the object with. String can be a file name, path or combination of both i.e. full path.  */
 {
-#if defined(__linux) || defined(__APPLE__)
-    owner = 0;
-    mode = -1;
-#endif
     set(p);
 }
 
 // ==================================================================================================
-c4s::path::path(const string &d, const string &b, const char *e)
+c4s::path::path(const string &d, const string &b, const string &e)
 {
-    change_time=0;
-    flag = false;
-#if defined(__linux) || defined(__APPLE__)
-    owner = 0;
-    mode = -1;
-#endif
     set(d,b,e);
 }
-
+// ------------------------------------------------------------------------------------------
+c4s::path::path(const char *d, const char *b, const char *e)
+{
+    if(!d || !b)
+        throw path_exception("path::path - Missing dir and base from path constructor.");
+    if(e)
+        set(string(d), string(b), string(e));
+    else
+        set(string(d), string(b), string());
+}
 // ==================================================================================================
 c4s::path::path(const string &d, const string &b)
 {
-    change_time=0;
-    flag = false;
-#if defined(__linux) || defined(__APPLE__)
-    owner = 0;
-    mode = -1;
-#endif
+
     set(d,b);
 }
 
 // ==================================================================================================
 c4s::path::path(const string &d, const char *b)
 {
-    change_time=0;
-    flag = false;
-#if defined(__linux) || defined(__APPLE__)
-    owner = 0;
-    mode = -1;
-#endif
     if(b)
         set(d,string(b));
     else
@@ -128,15 +120,12 @@ c4s::path::path(const string &d, const char *b)
 // ==================================================================================================
 c4s::path::path(const char *d, const char *b)
 {
-    change_time=0;
-    flag = false;
-#if defined(__linux) || defined(__APPLE__)
-    owner = 0;
-    mode = -1;
-#endif
-    if(d && b)
+    if(d && b) {
         set(string(d),string(b));
-    else if(!d && b)
+        return;
+    }
+    init_common();
+    if(!d && b)
         base = b;
     else if(d && !b)
         set_dir(string(d));
@@ -146,40 +135,17 @@ c4s::path::path(const char *d, const char *b)
 #if defined(__linux) || defined(__APPLE__)
 c4s::path::path(const string &d, const string &b, user *o, int m)
 {
-    change_time=0;
-    flag = false;
+    set(d,b);
     owner=o;
     mode=m;
-    set(d,b);
 }
 c4s::path::path(const string &p, user *o, int m)
 {
-    change_time=0;
-    flag = false;
+    set(p);
     owner=o;
     mode=m;
-    set(p);
 }
 #endif
-// ==================================================================================================
-void c4s::path::operator=(const char *p)
-/*!
-  \param p String with full path to initialize path with.
-*/
-{
-    if(!p) {
-        change_time=0;
-        dir.clear();
-        base.clear();
-#if defined(__linux) || defined(__APPLE__)
-        owner = 0;
-        mode = -1;
-#endif
-        return;
-    }
-    string init(p);
-    *this = init;
-}
 // ==================================================================================================
 void c4s::path::set(const string &init)
 /*! If the string ends with directory separator string is copied into dir and base is left
@@ -191,8 +157,7 @@ void c4s::path::set(const string &init)
 */
 {
     string work;
-    change_time=0;
-    flag = false;
+    init_common();
 #ifdef C4S_FORCE_NATIVE_PATH
     work = force_native_dsep(init);
 #else
@@ -215,23 +180,33 @@ void c4s::path::set(const string &init)
 }
 
 // ==================================================================================================
-void c4s::path::set(const string &dir_in, const string &base_in, const char *ext)
+void c4s::path::set(const string &dir_in, const string &base_in, const string &ext)
 /*!
    \param dir_in Directory name.
    \param base_in Base name (=file name) with option exception.
    \param ext Extension. If base has extension then it is changed to this extension. Parameter is optional. Defaults to null.
 */
 {
+    init_common();
     set_dir(dir_in);
-    change_time=0;
-    flag = false;
     base=base_in;
-    if(ext) {
+    if(!ext.empty()) {
         if(base.find('.')==string::npos)
             base += ext;
         else
             base = get_base(ext);
     }
+}
+// ------------------------------------------------------------------------------------------
+void c4s::path::set(const char *d, const char *b, const char *e)
+{
+    init_common();
+    if(!d || !b)
+        throw path_exception("path::set - dir nor base parameter can be null.");
+    if(e)
+        set(string(d), string(b), string(e));
+    else
+        set(string(d), string(b), string());
 }
 // ==================================================================================================
 void c4s::path::set(const string &dir_in, const string &base_in)
@@ -240,9 +215,8 @@ void c4s::path::set(const string &dir_in, const string &base_in)
   \param base_in Base name (=file name)
 */
 {
+    init_common();
     set_dir(dir_in);
-    change_time=0;
-    flag = false;
     base=base_in;
 }
 
@@ -266,7 +240,7 @@ string c4s::path::get_path_quot() const
     return os.str();
 }
 // ==================================================================================================
-string c4s::path::get_base(const char *ext) const
+string c4s::path::get_base(const string &ext) const
 /*! If extension is given it is exchanged with the base's current extension or then appended to
   base name if it currently does not have extension.
 
@@ -274,11 +248,11 @@ string c4s::path::get_base(const char *ext) const
   \retval string Resulting base name.
 */
 {
-    if(!ext)
+    if(ext.empty())
         return base;
     size_t loc=base.find_last_of('.');
     if(loc==string::npos)
-        return base;
+        return base+ext;
     return base.substr(0,loc)+ext;
 }
 

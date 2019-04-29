@@ -78,6 +78,8 @@ namespace c4s {
         void append(const argument &arg) { arguments.push_back(arg); }
         //! Appends the given argument into the list.
         void operator+=(const argument &arg) { arguments.push_back(arg); }
+        //! Returns number of arguments currently in the list.
+        size_t get_size() { return arguments.size(); }
         //! Checks if the given argument has been given in the command line.
         bool is_set(const char *);
         //! Checks if the given argument has been given in the command line and has specified value.

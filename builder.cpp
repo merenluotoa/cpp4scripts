@@ -66,8 +66,9 @@ int documentation(ostream *log)
 #if defined(__linux) || defined(__APPLE__)
 int build(ostream *log)
 {
+    builder *make=0, *make2=0;
     bool debug = false;
-    cout << "Building library\n";
+
     if(args.is_set("-u") && builder::update_build_no("c4s_version.cpp"))
         cout << "Warning: Unable to update build number.\n";
     int flags = BUILD_LIB;
@@ -101,24 +102,28 @@ int build(ostream *log)
     if(args.is_set("-CXX"))
         flags |= BUILD_ENV_VAR;
 
-    path_list cppFiles(cpp_list,' ');
-    cppFiles.add(cpp_linux,' ');
+    if(!args.is_set("-maker_only")) {
+        cout << "Building library\n";
+        path_list cppFiles(cpp_list,' ');
+        cppFiles.add(cpp_linux,' ');
 
-    string target = "c4s";
-    if(args.is_set("-l")) {
-        target += '-';
-        target += args.get_value("-l");
-    }
-    builder *make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
-    if(args.is_set("-t"))
-        make->add_comp("-DC4S_DEBUGTRACE");
-    make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
-    if(make->build()) {
-        cout << "Build failed\n";
+        string target = "c4s";
+        if(args.is_set("-l")) {
+            target += '-';
+            target += args.get_value("-l");
+        }
+        make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
+        if(args.is_set("-t"))
+            make->add_comp("-DC4S_DEBUGTRACE");
+        make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
+        if(make->build()) {
+            cout << "Build failed\n";
+            delete make;
+            return 2;
+        }
         delete make;
-        return 2;
+        make = 0;
     }
-
     cout << "Building makec4s\n";
     path_list plmkc4s;
     plmkc4s += path("makec4s.cpp");
@@ -131,21 +136,23 @@ int build(ostream *log)
     if(args.is_set("-CXX"))
         flags |= BUILD_ENV_VAR;
 
-    builder *make2 = new builder_gcc(&plmkc4s,"makec4s",log,flags);
+    make2 = new builder_gcc(&plmkc4s,"makec4s",log,flags);
     make2->add_comp("-fno-rtti");
-    string c4slib("-L./");
-    c4slib += make->get_build_dir();
-    c4slib += " -l";
-    c4slib += make->get_name();
-    make2->add_link(c4slib.c_str());
+    if(make) { // not -maker_only
+        string c4slib("-L./");
+        c4slib += make->get_build_dir();
+        c4slib += " -l";
+        c4slib += make->get_name();
+        make2->add_link(c4slib.c_str());
+    } else {
+        make2->add_comp("-DC4S_ALL_HPP");
+    }
     if(make2->build()) {
         cout << "\nbuild failed\n";
-        delete make;
         delete make2;
         return 2;
     }
     cout << "Compilation ready.\n";
-    delete make;
     delete make2;
     return 0;
 }
@@ -354,6 +361,7 @@ int main(int argc, char **argv)
     args += argument("-doc",  false,"Create docbook documentation only.");
     args += argument("-clean",false,"Clean up temporary files.");
     args += argument("-install",true,"Installs the library to given root directory. include- and lib-directories are created if necessary.");
+    args += argument("-maker_only",false,"Build the MakeC4S program only. Builds it with all inclusive header.");
     args += argument("-v",   false,"Shows the version nubmer and exists.");
     args += argument("-V",    false,"Verbose mode.");
     args += argument("-?",   false,"Shows this help");

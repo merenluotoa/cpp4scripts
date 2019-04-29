@@ -84,6 +84,8 @@ c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_
     else {
 #if __GNUC__ >= 5
         c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef -Wno-unused-result -std=c++14 ";
+#elif defined(__APPLE__) && __clang_major__>=5
+        c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef -Wno-unused-result -std=c++17 ";
 #else
         c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef -Wno-unused-result ";
 #endif

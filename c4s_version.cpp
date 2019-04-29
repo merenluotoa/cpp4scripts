@@ -1,1 +1,1 @@
-const char *CPP4SCRIPTS_VERSION = "Version 0.20.2";
+const char *CPP4SCRIPTS_VERSION = "Version 0.20.3";

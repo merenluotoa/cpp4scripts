@@ -25,7 +25,11 @@ This file is part of Cpp4Scripts library.
 
 Copyright (c) Menacon Ltd.
 ******************************************************************************************/
-#include "cpp4scripts.hpp"
+#ifdef C4S_ALL_HPP
+  #include "c4s_all.hpp"
+#else
+  #include "cpp4scripts.hpp"
+#endif
 #include "c4s_version.cpp"
 using namespace c4s;
 
