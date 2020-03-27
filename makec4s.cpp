@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     args += argument("-V",  false, "Verbose mode. Prints more messages, including build command.");
     try {
         args.initialize(argc,argv);
-    }catch(c4s_exception ce){
+    }catch(const c4s_exception &ce){
         cout << "Incorrect parameters.\n"<<ce.what()<<'\n';
         return 1;
     }
@@ -173,7 +173,7 @@ int main(int argc, char **argv)
             builder_vc link(0, "dummy", 0, flags);
             link.print(cout);
 #endif
-        }catch(c4s_exception ce){
+        }catch(const c4s_exception &ce){
             cout << "Parameter output failed:"<<ce.what()<<'\n';
             return 1;
         }
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
         else
             cout << make->get_target_name() << " ready.\n";
         delete make;
-    }catch(c4s_exception ce){
+    }catch(const c4s_exception &ce){
         cout << "Error: " << ce.what() <<'\n';
         if(make)
             delete make;

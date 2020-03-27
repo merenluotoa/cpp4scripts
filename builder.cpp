@@ -54,7 +54,7 @@ int documentation(ostream *log)
             cout << "Doxygen error.\n";
             return 1;
         }
-    }catch(c4s_exception re){
+    }catch(const c4s_exception &re){
         cerr << "Error: "<<re.what()<<'\n';
         return 1;
     }
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
 
     try{
         args.initialize(argc,argv);
-    }catch(c4s_exception ce){
+    }catch(const c4s_exception &ce){
         cerr << "Error: " << ce.what() << '\n';
         args.usage();
         return 1;
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
             return clean();
         if(args.is_set("-install"))
             return install();
-    }catch(c4s_exception ce) {
+    }catch(const c4s_exception &ce) {
         cout << "Function failed: "<<ce.what()<<'\n';
         return 1;
     }
@@ -403,7 +403,7 @@ int main(int argc, char **argv)
     int rv = 0;
     try {
         rv = build(log);
-    }catch(c4s_exception ce) {
+    }catch(const c4s_exception &ce) {
         cout << "Build failed: "<<ce.what()<<'\n';
         return 1;
     }

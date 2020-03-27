@@ -160,7 +160,7 @@ int c4s::builder::compile(const char *out_ext, const char *out_arg, bool echo_na
         if(!exec && log && is_set(BUILD_VERBOSE))
             *log << "No outdated source files found.\n";
     }
-    catch(c4s_exception ex){
+    catch(const c4s_exception &ex){
         if(log)
             *log << "builder::compile - "<<ex.what()<<'\n';
         return 2;
@@ -209,7 +209,7 @@ int c4s::builder::link(const char *out_ext, const char *out_arg)
             *log << "Link options: "<<options.str() <<'\n';
         rv = linker.exec(3*timeout,options.str().c_str());
     }
-    catch(c4s_exception ce) {
+    catch(const c4s_exception &ce) {
         if(log)
             *log << "builder::link - Error: "<<ce.what()<<'\n';
         return 2;
@@ -241,7 +241,7 @@ int c4s::builder::get_arch()
     string arch;
     try {
         process::catch_output("uname","-m",arch);
-    }catch(c4s_exception){
+    }catch(const c4s_exception &){
         return BUILD_X32;
     }
     return arch.compare(0,6,"x86_64")==0 ? BUILD_X64:BUILD_X32;
@@ -288,7 +288,7 @@ void c4s::builder::clean_build_dir()
 // ------------------------------------------------------------------------------------------
 int c4s::builder::update_build_no(const char *filename)
 {
-    char *vbuffer, *tail, *head, *dummy, bno_str[10];
+    char *vbuffer, *tail, *head, *dummy, bno_str[24];
     ifstream fbn(filename);
     if(!fbn) {
         // cout << "builder::update_build_no - Unable to open given file for reading.\n";

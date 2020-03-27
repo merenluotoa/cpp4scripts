@@ -127,7 +127,7 @@ int c4s::builder_gcc::build()
                 *log << "Compile parameters: "<<single.str()<<'\n';
             }
             return compiler.exec(20,vars.expand(single.str()).c_str());
-        }catch (c4s_exception ce) {
+        }catch (const c4s_exception &ce) {
             if(log)
                 *log << "builder_gcc::build - Failed:"<<ce.what()<<'\n';
         }

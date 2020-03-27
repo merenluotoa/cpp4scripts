@@ -979,7 +979,7 @@ bool c4s::path::outdated(path &target, bool check_inside)
         if(compare_times(target)>0)
             return true;
     }
-    catch(path_exception){
+    catch(const path_exception &){
         return true;
     }
     if(!check_inside)
@@ -1662,7 +1662,7 @@ int c4s::path::search_replace(const string &search, const string &replace, bool 
                 rm();
             target.ren(sbase_old,true);
             (*this)=target;
-        }catch(c4s_exception){
+        }catch(const c4s_exception &){
             throw path_exception("path::search_replace - temp file rename error.");
         }
     }
@@ -1756,7 +1756,7 @@ bool c4s::path::replace_block(const string &start_tag, const string &end_tag, co
             rm();
         target.ren(sbase_old,true);
         (*this)=target;
-    }catch(c4s_exception){
+    }catch(const c4s_exception &){
         throw path_exception("path::replace_block - temp file rename error.");
     }
     return true;
