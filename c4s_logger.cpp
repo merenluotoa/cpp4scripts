@@ -51,7 +51,7 @@ const char* g_level_names[c4s::LL_MAX] = { "NONE", "TRACE", "DEBUG", "INFO", "NO
 // ==================================================================================================
 const char *c4s::log_sink::get_datetime(LOG_LEVEL ll)
 {
-    static char datetime[32]; // 2013-01-01 23:30:30 [CRITICAL]
+    static char datetime[64]; // 2013-01-01 23:30:30 [CRITICAL]
     time_t now = time(0);
     struct tm *lt = localtime(&now);
     sprintf(datetime,"%d-%02d-%02d %02d:%02d:%02d [%-8s] ",

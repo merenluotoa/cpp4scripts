@@ -708,10 +708,6 @@ void c4s::process::start(const char *args)
         arguments.str("");
         arguments << args;
     }
-#ifndef C4S_DEBUGTRACE
-    if(echo)
-        cerr << command.get_base()<<'('<<arguments.str()<<")\n";
-#endif
     last_ret_val = 0;
     if(no_run)
         return;
@@ -793,6 +789,15 @@ void c4s::process::start(const char *args)
     cerr << ", pipe_global=";
     if(pipe_global) cerr << "enabled\n";
     else cerr << "disabled\n";
+#else
+    if(echo) {
+        cerr << command.get_base()<<'(';
+        for(int i=0; arg_ptr[i]; i++) {
+            if(i>0) cerr<<' ';
+            cerr << '\''<<arg_ptr[i]<<'\'';
+        }
+        cerr << ")\n";
+    }
 #endif
 
     if(pipes)

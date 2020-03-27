@@ -71,20 +71,20 @@ void c4s::program_arguments::initialize(int argc, char *argv[], int min_args)
     // Initialize program paths
     argv0 = argv[0];
     cwd.read_cwd();
-    char path_buf[512];
+    char link_name[512], link_path[512];
 #if defined(__linux)
     pid_t pid = getpid();
-    sprintf(path_buf,"/proc/%d/exe",pid);
-    int rv = readlink(path_buf,path_buf,sizeof(path_buf));
+    sprintf(link_name,"/proc/%d/exe",pid);
+    int rv = readlink(link_name, link_path, sizeof(link_path));
 #elif defined(__APPLE__)
-    uint32_t size = sizeof(path_buf);
-    int rv = _NSGetExecutablePath(path_buf, &size) == 0 ? strlen(path_buf) : 0;
+    uint32_t size = sizeof(link_path);
+    int rv = _NSGetExecutablePath(link_path, &size) == 0 ? strlen(link_path) : 0;
 #else
-    DWORD rv = GetModuleFileName(0,path_buf,sizeof(path_buf));
+    DWORD rv = GetModuleFileName(0,link_path,sizeof(link_path));
 #endif
     if(rv>0) {
-        path_buf[rv]=0;
-        exe = path_buf;
+        link_path[rv]=0;
+        exe = link_path;
     }
     else
         exe = argv[0];

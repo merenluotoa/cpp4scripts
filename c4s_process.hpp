@@ -123,6 +123,8 @@ namespace c4s {
         void set_args(const char *arg) { arguments.str(""); arguments<<arg; }
         //! Sets the given string as single argument string for this process.
         void set_args(const string &arg) { arguments.str(""); arguments<<arg; }
+        //! Adds given string into argument list as quoted string
+        void add_quoted_args(const string &arg) { arguments<<" '"<<arg<<'\''; }
         //! Adds the given string into argument list.
         void operator+=(const char* arg) { arguments <<' '<<arg; }
         //! Adds the given string into argument list.
