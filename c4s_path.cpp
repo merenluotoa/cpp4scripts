@@ -407,22 +407,29 @@ void c4s::path::read_cwd()
 #if defined(__linux) || defined(__APPLE__)
 
 // ==================================================================================================
-int c4s::path::owner_status()
-/*! Checks the status of the path's owner.
-  \retval int 0=valid, 1=user/group does not exist, 2=path is invalid, 3=owner does not own path,
-              4=owner not specified
+c4s::OWNER_STATUS c4s::path::owner_status()
+/// Checks the status of the path's owner.
+/**  \retval c4s::OWNER
 */
 {
     struct stat dsbuf;
     if(!owner)
-        return 4;
+        return OWNER_STATUS::EMPTY;
     if(!owner->is_ok())
-        return 1;
+        return OWNER_STATUS::MISSING;
     if(stat(get_dir_plain().c_str(),&dsbuf))
-        return 2;
-    if(owner->match(dsbuf.st_uid, dsbuf.st_gid))
-       return 0;
-    return 3;
+        return OWNER_STATUS::NOPATH;
+    if(owner->match(dsbuf.st_uid, dsbuf.st_gid)) {
+        if(mode >= 0) {
+            string fp = base.empty() ? get_dir_plain() : get_path();
+            if( get_path_mode(fp.c_str()) == mode)
+                return OWNER_STATUS::OK;
+            else
+                return OWNER_STATUS::NOMATCH_MODE;
+        }
+        return OWNER_STATUS::OK;
+    }
+    return OWNER_STATUS::NOMATCH_UG;
 }
 
 // ==================================================================================================
@@ -465,6 +472,15 @@ void c4s::path::owner_write()
         os << "Unable to set path owner for "<<get_path()<<" - system error: "<<strerror(errno);
         throw c4s_exception(os.str());
     }
+}
+// ==================================================================================================
+void c4s::path::read_mode()
+//! Reads current path mode from file system.
+{
+    string fp = base.empty() ? get_dir_plain() : get_path();
+    int pm = get_path_mode(fp.c_str());
+    if(pm>=0)
+        mode = pm;
 }
 
 // SECTION for Linux and Apple ENDS
@@ -1525,6 +1541,7 @@ void c4s::path::symlink(const path &link) const
 #endif
 }
 
+
 // ==================================================================================================
 void c4s::path::chmod(int mode_in)
 /*!  In Windows environment file is changed to read-only if user write flag is not set.
@@ -1543,7 +1560,7 @@ void c4s::path::chmod(int mode_in)
             return;
     } else if(mode<0)
         mode = mode_in;
-    mode_t final=map_mode(mode_in);
+    mode_t final=hex2mode(mode_in);
     if(::chmod (get_path().c_str(), final) == -1) {
         os << "path::chmod failed - "<<get_path()<<" - Error:"<<strerror(errno);
         throw path_exception(os.str());

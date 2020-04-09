@@ -36,22 +36,32 @@ Copyright (c) Menacon Ltd
 #endif
 
 namespace c4s {
-    class path_list;
-    class user;
 
-    //! Flags and options for path's copy function.
-    const int PCF_NONE=0;         //!< None.
-    const int PCF_FORCE=0x1;      //!< Force / overwrite if exists.
-    const int PCF_MOVE=0x2;       //!< Move the file i.e. delete original.
-    const int PCF_APPEND=0x4;     //!< Append to possibly existing file.
-    const int PCF_ONAME=0x8;      //!< Use original base name for the target.
-    const int PCF_DEFPERM=0x10;   //!< Use default file permissions given by operating system. Note, this also overrides possible user and permission settings for the target.
-    const int PCF_BACKUP=0x20;    //!< Backup original if it exists.
-    const int PCF_RECURSIVE=0x40; //!< Copy recursively. Valid only if source is a directory (i.e. base is empty).
+class path_list;
+class user;
 
-    //! Flags for path compare function.
-    const unsigned char CMP_DIR =  1;     //!< Compare Dir parts together
-    const unsigned char CMP_BASE = 2;     //!< Compare Base parts together
+//! Flags and options for path's copy function.
+const int PCF_NONE=0;         //!< None.
+const int PCF_FORCE=0x1;      //!< Force / overwrite if exists.
+const int PCF_MOVE=0x2;       //!< Move the file i.e. delete original.
+const int PCF_APPEND=0x4;     //!< Append to possibly existing file.
+const int PCF_ONAME=0x8;      //!< Use original base name for the target.
+const int PCF_DEFPERM=0x10;   //!< Use default file permissions given by operating system. Note, this also overrides possible user and permission settings for the target.
+const int PCF_BACKUP=0x20;    //!< Backup original if it exists.
+const int PCF_RECURSIVE=0x40; //!< Copy recursively. Valid only if source is a directory (i.e. base is empty).
+
+//! Flags for path compare function.
+const unsigned char CMP_DIR =  1;     //!< Compare Dir parts together
+const unsigned char CMP_BASE = 2;     //!< Compare Base parts together
+
+enum class OWNER_STATUS : unsigned short int {
+    OK,             /// Owner+mode exists and matches actual owner+mode
+    EMPTY,          /// Owner not specified
+    MISSING,        /// Owner does not exist in system
+    NOPATH,         /// Path does not exist
+    NOMATCH_UG,     /// Actual owner/group does not match given user/group
+    NOMATCH_MODE    /// Actual mode does not match given mode.
+};
 
     // ----------------------------------------------------------------------------------------------------
     //! Class that encapsulates a path to a file or directory.
@@ -149,7 +159,7 @@ namespace c4s {
 
 #if defined(__linux) || defined(__APPLE__)
         //! Verifies that owner exists and the is owner of this path. (Linux only)
-        int  owner_status();
+        OWNER_STATUS owner_status();
         //! Reads the owner information from the path. (Linux only)
         void owner_read();
         //! Writes the current owner to disk, i.e. possibly changes ownership.  (Linux only)
@@ -162,6 +172,8 @@ namespace c4s {
         bool has_owner() { return owner ? true:false; }
         //! Returns the user for this path. (Linux only)
         user* get_owner() { return owner; }
+        //! Reads current path mode from file system.
+        void read_mode();
 #endif
         //! Returns true if path has directory part.
         bool is_dir() const { return dir.empty()?false:true; }

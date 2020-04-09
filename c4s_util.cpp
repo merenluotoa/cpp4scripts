@@ -432,29 +432,68 @@ bool c4s::generate_next_base(path &target, const char *wild)
 
 #if defined(__linux) || defined(__APPLE__)
 // ==================================================================================================
-mode_t c4s::map_mode(int mode_in)
+mode_t c4s::hex2mode(int hex_in)
 {
     mode_t final=0;
-    if( (mode_in&0x400)>0 )
+    if( (hex_in&0x400)>0 )
         final|= S_IRUSR;
-    if( (mode_in&0x200)>0 )
+    if( (hex_in&0x200)>0 )
         final|= S_IWUSR;
-    if( (mode_in&0x100)>0 )
+    if( (hex_in&0x100)>0 )
         final|= S_IXUSR;
-    if( (mode_in&0x40)>0 )
+    if( (hex_in&0x40)>0 )
         final|= S_IRGRP;
-    if( (mode_in&0x20)>0 )
+    if( (hex_in&0x20)>0 )
         final|= S_IWGRP;
-    if( (mode_in&0x10)>0 )
+    if( (hex_in&0x10)>0 )
         final|= S_IXGRP;
-    if( (mode_in&0x4)>0 )
+    if( (hex_in&0x4)>0 )
         final|= S_IROTH;
-    if( (mode_in&0x2)>0 )
+    if( (hex_in&0x2)>0 )
         final|= S_IWOTH;
-    if( (mode_in&0x1)>0 )
+    if( (hex_in&0x1)>0 )
         final|= S_IXOTH;
     return final;
 }
+// ------------------------------------------------------------------------------------------
+int c4s::mode2hex(mode_t mode_in)
+{
+    int final=0;
+    if( (mode_in & S_IRUSR)>0 )
+        final|= 0x400;
+    if( (mode_in & S_IWUSR)>0 )
+        final|= 0x200;
+    if( (mode_in & S_IXUSR)>0 )
+        final|= 0x100;
+    if( (mode_in & S_IRGRP)>0 )
+        final|= 0x40;
+    if( (mode_in & S_IWGRP)>0 )
+        final|= 0x20;
+    if( (mode_in & S_IXGRP)>0 )
+        final|= 0x10;
+    if( (mode_in & S_IROTH)>0 )
+        final|= 0x4;
+    if( (mode_in & S_IWOTH)>0 )
+        final|= 0x2;
+    if( (mode_in & S_IXOTH)>0 )
+        final|= 0x1;
+    return final;
+}
+// ==================================================================================================
+int c4s::get_path_mode(const char *pname)
+/// Reads current path mode from file system.
+/**
+   \param pname Full or relative path to directory or file.
+   \retval int Negative on error, otherwise mode in hex.
+ */
+{
+    struct stat file_stat;
+    int rv = ::stat(pname, &file_stat);
+    if(rv == 0)
+        return mode2hex(file_stat.st_mode);
+    return -1;
+}
+
 // ==================================================================================================
 void c4s::set_owner_mode(const char *dirname, int userid, int groupid, int dirmode, int filemode)
 {
@@ -478,8 +517,8 @@ void c4s::set_owner_mode(const char *dirname, int userid, int groupid, int dirmo
         throw c4s_exception("c4s::set_owner_mode - Too high nesting of directories. ");
     }
 
-    mode_t final_dmode = map_mode(dirmode);
-    mode_t final_fmode = map_mode(filemode);
+    mode_t final_dmode = hex2mode(dirmode);
+    mode_t final_fmode = hex2mode(filemode);
     struct stat file_stat;
     struct dirent *de = readdir(source_dir);
     //cout << "c4s::set_owner_mode - userid:"<<userid<<"; groupid:"<<groupid<<"; nesting:"<<nesting<<"; reading: "<<dirname<<'\n';

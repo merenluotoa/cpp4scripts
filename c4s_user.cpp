@@ -238,14 +238,11 @@ void c4s::user::read()
     struct passwd *pwd=0;
     struct group *grp=0;
 
-#ifdef C4S_DEBUGTRACE
-    cout << "user::read()\n";
-#endif
     if(!name.empty()) {
         pwd = getpwnam (name.c_str());
         if(pwd) {
             uid = pwd->pw_uid;
-            // \TODO: Fix the hack below. We should read the system user limit from configuration file.
+            // \TODO: Fix the constant below. We should read the system user limit from configuration file.
             if(uid<1000)
                 system = true;
             if(group.empty()) {
@@ -343,9 +340,6 @@ void c4s::user::create(bool append_groups)
     struct group *grp;
 
     if(status()==0) {
-#ifdef C4S_DEBUGTRACE
-        cout << "user::create - skipped because "<<name<<" is already in the system\n";
-#endif
         return;
     }
     bool nzrv_restore = process::nzrv_exception;

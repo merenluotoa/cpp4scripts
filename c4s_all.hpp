@@ -18,7 +18,7 @@ This file is part of Cpp4Scripts library.
   GNU General Public License for more details:
   http://www.gnu.org/licenses/lgpl.html
 
-Copyright (c) Menacon Ltd
+Copyright (c) Menacon Oy
 *******************************************************************************/
 
 #ifndef CPP4SCRIPTS_ALL_HPP

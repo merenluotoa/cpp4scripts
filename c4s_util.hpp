@@ -54,7 +54,11 @@ namespace c4s {
     bool generate_next_base(path &target, const char *);
 #if defined(__linux) || defined(__APPLE__)
     //! Maps the mode from numeric hex to linux symbolic
-    mode_t map_mode(int);
+    mode_t hex2mode(int);
+    //! Maps the mode from linux symbolic into numeric hex
+    int mode2hex(mode_t);
+    //! Reads the current file mode from named file.
+    int get_path_mode(const char *pname);
     //! Sets owner and mode recursively to entire subtree. Use with care. (Linux&Apple only)
     void set_owner_mode(const char *dirname, int userid, int groupid, int dirmode, int filemode);
 #endif
