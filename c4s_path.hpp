@@ -133,6 +133,8 @@ enum class OWNER_STATUS : unsigned short int {
         string get_path() const { return dir+base; }
         //! Returns the full path with quotes if the file name contains any spaces.
         string get_path_quot() const;
+        //! Returns pointer to path string. Path is overwritten at each call. Don't store for long!
+        const char* get_pp() const;
 
         //! Sets the directory part of the path.
         void set_dir(const string &d);

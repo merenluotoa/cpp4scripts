@@ -71,8 +71,9 @@ void c4s::program_arguments::initialize(int argc, char *argv[], int min_args)
     // Initialize program paths
     argv0 = argv[0];
     cwd.read_cwd();
-    char link_name[512], link_path[512];
+    char link_path[512];
 #if defined(__linux)
+    char link_name[512];
     pid_t pid = getpid();
     sprintf(link_name,"/proc/%d/exe",pid);
     int rv = readlink(link_name, link_path, sizeof(link_path));
