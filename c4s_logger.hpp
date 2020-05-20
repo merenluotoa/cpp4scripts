@@ -189,6 +189,8 @@ namespace c4s {
 #define CS_ERRO c4s::LL_ERROR
 #define CS_CRIT c4s::LL_CRITICAL
 
+#define _C(x) x.c_str()
+
 #if C4S_LOG_LEVEL <= 1
 #define CS_PRINT_TRCE(x) c4s::logbase::get()->print(CS_TRCE, x)
 #else

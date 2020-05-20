@@ -240,6 +240,14 @@ string c4s::path::get_path_quot() const
     return os.str();
 }
 // ==================================================================================================
+const char* c4s::path::get_pp()
+{
+    static string ps;
+    ps = dir;
+    ps += base;
+    return ps.c_str();
+}
+// ==================================================================================================
 string c4s::path::get_base(const string &ext) const
 /*! If extension is given it is exchanged with the base's current extension or then appended to
   base name if it currently does not have extension.
