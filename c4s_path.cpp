@@ -907,13 +907,10 @@ bool c4s::path::exists() const
 #if defined(__linux) || defined(__APPLE__)
     // Simply stat the file
     struct stat target;
-    if(lstat(get_path().c_str(), &target)) {
-        if(errno == ENOENT) {
-            return false;
+    if(!lstat(get_path().c_str(), &target)) {
+        if( S_ISREG(target.st_mode) || S_ISLNK(target.st_mode) ) {
+            return true;
         }
-    }
-    if( S_ISREG(target.st_mode) || S_ISLNK(target.st_mode)) {
-        return true;
     }
     return false;
 #endif
