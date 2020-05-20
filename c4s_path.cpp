@@ -240,7 +240,7 @@ string c4s::path::get_path_quot() const
     return os.str();
 }
 // ==================================================================================================
-const char* c4s::path::get_pp()
+const char* c4s::path::get_pp() const
 {
     static string ps;
     ps = dir;
