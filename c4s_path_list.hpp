@@ -24,11 +24,14 @@ Copyright (c) Menacon Ltd, Finland
 namespace c4s {
 
     typedef list<path>::iterator path_iterator;
-    // Flags for adding files into the list
+    /** \defgroup PathListFlags Flags for adding files into the list
+        @{
+    */
     const int PLF_NONE=0;    //!< Add normal files only.
     const int PLF_DIRS=0x1;  //!< Include directories.
     const int PLF_SYML=0x2;  //!< Include symbolic links.
     const int PLF_NOREG=0x4; //!< Discard regular files.
+    /**@}*/
 
     // ----------------------------------------------------------------------------------------------------
     //! List of paths.
@@ -45,13 +48,14 @@ namespace c4s {
         /*! \param str List of paths
            \param sep Path separator used in str */
         path_list(const char*str, const char sep) { add(str,sep); }
-        //! Creates a list of paths from the source list.
+        /// Creates a list of paths from the source list.
         path_list(const path_list &pl, const string &dir, const char*ext=0) { add(pl,dir,ext); }
-        //! Constructs list by reading given directory with supplied wild card.
-        /*! \param target Path to the target directory. Only dir-part is considered.
+        /// Constructs list by reading given directory with supplied wild card.
+        /** \param target Path to the target directory. Only dir-part is considered.
            \param wild Wildcard (*,?) to gather the files with. Use null or '*' to gather all files.
-           \param exclude List of wildcard strings (*,?) to exclude from the list. Separate wildcards with ':'.*/
-        path_list(const path &p, const char *wild=0, int plo=PLF_NONE, const char *excl=0) { add(p, wild, plo, excl); }
+           \param plo See \sa PathListFlags
+           \param excl List of wildcard strings (*,?) to exclude from the list. Separate wildcards with ':'.*/
+        path_list(const path &target, const char *wild=0, int plo=PLF_NONE, const char *excl=0) { add(target, wild, plo, excl); }
 
         //! Adds a given path to the list
         void operator+=(const path &p) { add(p); }

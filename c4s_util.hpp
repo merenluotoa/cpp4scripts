@@ -51,7 +51,7 @@ namespace c4s {
     //! Appends a slash tot he end of the string if it does not have one
     string append_slash(const string &);
     //! Creates a 'next' available filename into the base part based on given wild card.
-    bool generate_next_base(path &target, const char *);
+    bool generate_next_base(path &target, const char *wild);
 #if defined(__linux) || defined(__APPLE__)
     //! Maps the mode from numeric hex to linux symbolic
     mode_t hex2mode(int);

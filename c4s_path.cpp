@@ -219,12 +219,26 @@ void c4s::path::set(const string &dir_in, const string &base_in)
     set_dir(dir_in);
     base=base_in;
 }
-
+// ==================================================================================================
+void c4s::path::get_dir_parts(vector<string> &vs) const
+/*!
+  \param vs Reference to an array of strings where the directory parts are filled into.
+ */
+{
+    string::size_type pt=1, prev=1;
+    auto si=dir.begin();
+    si++; // skip the first separator;
+    while(si != dir.end()) {
+        if(*si == C4S_DSEP) {
+            vs.push_back(dir.substr(prev,pt-prev));
+            prev = pt+1;
+        }
+        si++;
+        pt++;
+    }
+}
 // ==================================================================================================
 string c4s::path::get_path_quot() const
-/*!
-  \retval string Complete path.
-*/
 {
     ostringstream os;
     bool quotes = false;
@@ -1136,7 +1150,7 @@ void c4s::path::dos2unix()
 // ==================================================================================================
 inline bool isflag(int f,const int t) { return (f&t)==t?true:false;}
 #define IS(x) isflag(flags,x)
-int c4s::path::cp(const path &to, int flags)
+int c4s::path::cp(const path &to, int flags) const
 /*! Copies this file into the target. In Linux, after the file is copied the owner and mode
   is changed if they have been defined for the target.
   \param to Path to target file
@@ -1167,9 +1181,9 @@ int c4s::path::cp(const path &to, int flags)
     if(tmp_to.exists()) {
         if(IS(PCF_BACKUP)) {
             path backup(tmp_to);
-            string base(tmp_to.get_base());
-            base += "~";
-            backup.ren(base);
+            string bb(tmp_to.get_base());
+            bb += "~";
+            backup.ren(bb);
         }
         else if(!IS(PCF_FORCE)) {
             ss << "path::cp - target file exists: " << tmp_to.get_path();
@@ -1289,7 +1303,7 @@ void c4s::path::cat(const path &tail) const
 }
 
 // ==================================================================================================
-void c4s::path::copy_mode(const path &target)
+void c4s::path::copy_mode(const path &target) const
 /*!  In Windos this only copies file time-attributes only.
 
   \param target Path to target where the attributes are copied into.
@@ -1329,7 +1343,7 @@ void c4s::path::copy_mode(const path &target)
 }
 
 // ==================================================================================================
-int c4s::path::copy_recursive(const path &target, int flags)
+int c4s::path::copy_recursive(const path &target, int flags) const
 /*! Copies everything from this directory to target. If this object has base defined it will be ignored.
   If the target does not exist it will be created (recursively). If files exist in target they will
   be copied over. File times are preserved. Only regular files are copied.
@@ -1466,7 +1480,7 @@ void c4s::path::ren(const string &new_base, bool force)
 }
 
 // ==================================================================================================
-bool c4s::path::rm()
+bool c4s::path::rm() const
 /*!
   Removes the file from the disk. Removes empty directories as well. If file does not exist or directory has
   files this function returns false. Other errors cause exception.

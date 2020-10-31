@@ -197,7 +197,8 @@ bool c4s::search_bmh(const unsigned char* haystack, SSIZE_T hlen,
   \param hlen Lenght of the haystack buffer.
   \param needle Pointer to the sring to be searched.
   \param nlen Lenth of the search string.
-  \retval SIZE_T offset to the beginning of the needle in haystack.
+  \param offset_out Variable is filled with offset to the beginning of the needle in haystack.
+  \retval bool True if search is successful
  */
 {
     const unsigned int MAX_BCS = 256;
@@ -368,6 +369,7 @@ bool c4s::generate_next_base(path &target, const char *wild)
 /*! Searches the directory (or cwd if dir part is empty) with given wild card. Then determines the next
   possible unique filename and stores it to the base part. Please note that only one wild card '*' is
   accepted.
+  \param target Target directory to search
   \param wild A search string.
   \retval bool True on succes, false on error or too many wild cards.
 */

@@ -35,6 +35,8 @@ Copyright (c) Menacon Ltd
   #define TIME_T __int64
 #endif
 
+#include <vector>
+
 namespace c4s {
 
 class path_list;
@@ -115,10 +117,12 @@ enum class OWNER_STATUS : unsigned short int {
         //! Checks whether the path is clear (or empty). \retval bool True if empty.
         bool empty() { return dir.empty() && base.empty(); }
 
-        //! Returns the directory path
+        //! Returns the directory part of full path
         string get_dir() const { return dir; }
-        //! Returns the directory path without the trailin slash.
+        //! Returns the directory part without the trailin slash.
         string get_dir_plain() const { return dir.substr(0,dir.size()-1); }
+        //! Returns the directory part as array of sub-directories
+        void get_dir_parts(std::vector<std::string> &vs) const;
         //! Returns the base part with extension.
         string get_base() const { return base; }
         //! Returns the base and swaps its extension to the one given as parameter.
@@ -225,13 +229,13 @@ enum class OWNER_STATUS : unsigned short int {
         //! Copy file pointed by path to a new location
         int cp(const char *to, int flags=PCF_NONE) { path target(to); return cp(target,flags); }
         //! Copy file pointed by path to a new location
-        int cp(const path &, int flags=PCF_NONE);
+        int cp(const path &, int flags=PCF_NONE) const;
         //! Concatenate file
         void cat(const path &) const;
         //! Rename the base part
         void ren(const string &, bool force=false);
         //! Remove / delete file.
-        bool rm();
+        bool rm() const;
         //! Make symbolic link
         void symlink(const path&) const;
         //! Changes file / directory permissions.
@@ -259,9 +263,9 @@ enum class OWNER_STATUS : unsigned short int {
         //! Common functionality for all constructors
         void init_common();
         //! Copies attributes and permissions from this file to target.
-        void copy_mode(const path &target);
+        void copy_mode(const path &target) const;
         //! Recursive copy from this to target.
-        int copy_recursive(const path &, int);
+        int copy_recursive(const path &, int) const;
 
 #if defined(__linux) || defined(__APPLE__)
         user *owner;        //!< Pointer to User and group for this file's permissions
