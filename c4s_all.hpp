@@ -67,6 +67,7 @@ Copyright (c) Menacon Oy
 #include "c4s_program_arguments.cpp"
 #include "c4s_logger.cpp"
 #include "c4s_util.cpp"
+#include "c4s_settings.cpp"
 #include "c4s_builder.cpp"
 #if defined(__linux) || defined(__APPLE__)
  #include "c4s_builder_gcc.cpp"

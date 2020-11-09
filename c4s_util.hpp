@@ -19,6 +19,7 @@ Copyright (c) Menacon Ltd, Finland
 #ifndef C4S_UTIL_HPP
 #define C4S_UTIL_HPP
 namespace c4s {
+
     //inline void cp(const char *from, const char *to) { path source(from); source.cp(to); }
     //inline void cp_to_dir(const char *from, path &to, path::cpf flags=path::NONE) { path source(from); source.cp(to,flags); }
     enum DATETYPE { DATE_ONLY, WITH_TIME };
@@ -62,5 +63,12 @@ namespace c4s {
     //! Sets owner and mode recursively to entire subtree. Use with care. (Linux&Apple only)
     void set_owner_mode(const char *dirname, int userid, int groupid, int dirmode, int filemode);
 #endif
-}
+
+// Bitwice functions
+//! Returns true if any bit of bits is set in target
+bool has_any(uint32_t target, uint32_t bits);
+//! Returns true if all bits of bits are set in target
+bool has_all(uint32_t target, uint32_t bits);
+
+} // namespace c4s
 #endif

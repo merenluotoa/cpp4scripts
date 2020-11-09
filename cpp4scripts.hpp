@@ -40,6 +40,7 @@ Copyright (c) Menacon Ltd.
 #include "c4s_process.hpp"
 #include "c4s_logger.hpp"
 #include "c4s_util.hpp"
+#include "c4s_settings.hpp"
 #include "c4s_builder.hpp"
 #if defined(__linux) || defined(__APPLE__)
   #include "c4s_builder_gcc.hpp"

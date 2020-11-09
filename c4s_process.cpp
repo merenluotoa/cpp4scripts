@@ -560,7 +560,7 @@ void c4s::process::set_command(const char *cmd)
     struct stat sbuf;
     memset(&sbuf,0,sizeof(sbuf));
     // Check the user provided path first. This includes current directory.
-    if( stat(command.get_path().c_str(),&sbuf) == -1 || ( sbuf.st_mode|(S_IXUSR|S_IXGRP|S_IXOTH) ) == 0 )
+    if( stat(command.get_path().c_str(),&sbuf) == -1 ||  !has_any(sbuf.st_mode, S_IXUSR|S_IXGRP|S_IXOTH) )
     {
         // cerr << "DEBUG - set_command:"<<command.get_path()<<"; st_mode="<<hex<<sbuf.st_mode<<dec<<'\n';
         if(!command.exists_in_env_path("PATH",true))

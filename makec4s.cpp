@@ -25,11 +25,7 @@ This file is part of Cpp4Scripts library.
 
 Copyright (c) Menacon Ltd.
 ******************************************************************************************/
-#ifdef C4S_ALL_HPP
-  #include "c4s_all.hpp"
-#else
-  #include "cpp4scripts.hpp"
-#endif
+#include "cpp4scripts.hpp"
 #include "c4s_version.cpp"
 using namespace c4s;
 
@@ -51,14 +47,14 @@ int make_template()
         "using namespace c4s;\n\n"\
         "program_arguments args;\n";
     ts<<"int main(int argc, char **argv)\n{\n\n";
-    ts<<"    args += argument(\"-?\",  false, \"Outputs this help / parameter list.\");\n" \
+    ts<<"    args += argument(\"--help\",  false, \"Outputs this help / parameter list.\");\n" \
         "    try {\n"                                                   \
         "        args.initialize(argc,argv);\n"                         \
-        "    }catch(c4s_exception ce){\n"                               \
+        "    }catch(const c4s_exception &ce){\n"                               \
         "        cout << \"Incorrect parameters.\\n\"<<ce.what()<<'\\n';\n" \
         "        return 1;\n"                                           \
         "    }\n";
-    ts<<"    if( args.is_set(\"-?\") ) {\n"         \
+    ts<<"    if( args.is_set(\"--help\") ) {\n"         \
         "        args.usage();\n"                   \
         "        return 0;\n"                       \
         "    }\n";
@@ -77,7 +73,7 @@ int main(int argc, char **argv)
     int timeout=15;
 
     // Set arguments and initialize them.
-    args += argument("-s",  true,  "Sets VALUE as a source file to be compiled. If not defined looks for the c4s-build.cpp from current dir.");
+    args += argument("-s",  true,  "Sets VALUE as a source file to be compiled.");
     args += argument("-deb", false, "Create debug version.");
     args += argument("-rel", false, "Create release version (default).");
     args += argument("-def", false, "Print the default compiler argumens to stdout.");

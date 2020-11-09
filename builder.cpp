@@ -41,7 +41,8 @@ program_arguments args;
 path compile_dir;
 
 const char *cpp_list = "c4s_builder.cpp c4s_logger.cpp c4s_path.cpp c4s_path_list.cpp " \
-    "c4s_process.cpp c4s_program_arguments.cpp c4s_util.cpp c4s_variables.cpp c4s_exception.cpp";
+    "c4s_process.cpp c4s_program_arguments.cpp c4s_util.cpp c4s_variables.cpp c4s_exception.cpp "\
+    "c4s_settingc.cpp";
 const char *cpp_win = "c4s_builder_vc.cpp c4s_builder_ml.cpp";
 const char *cpp_linux = "c4s_user.cpp c4s_builder_gcc.cpp";
 
@@ -102,28 +103,27 @@ int build(ostream *log)
     if(args.is_set("-CXX"))
         flags |= BUILD_ENV_VAR;
 
-    if(!args.is_set("-maker_only")) {
-        cout << "Building library\n";
-        path_list cppFiles(cpp_list,' ');
-        cppFiles.add(cpp_linux,' ');
+    cout << "Building library\n";
 
-        string target = "c4s";
-        if(args.is_set("-l")) {
-            target += '-';
-            target += args.get_value("-l");
-        }
-        make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
-        if(args.is_set("-t"))
-            make->add_comp("-DC4S_DEBUGTRACE");
-        make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
-        if(make->build()) {
-            cout << "Build failed\n";
-            delete make;
-            return 2;
-        }
-        delete make;
-        make = 0;
+    path_list cppFiles(cpp_list,' ');
+    cppFiles.add(cpp_linux,' ');
+
+    string target = "c4s";
+    if(args.is_set("-l")) {
+        target += '-';
+        target += args.get_value("-l");
     }
+    make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
+    if(args.is_set("-t"))
+        make->add_comp("-DC4S_DEBUGTRACE");
+    make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
+
+    if(!args.is_set("-maker_only") && make->build()) {
+        cout << "Build failed\n";
+        delete make;
+        return 2;
+    }
+
     cout << "Building makec4s\n";
     path_list plmkc4s;
     plmkc4s += path("makec4s.cpp");
@@ -136,25 +136,23 @@ int build(ostream *log)
     if(args.is_set("-CXX"))
         flags |= BUILD_ENV_VAR;
 
+    int rv = 0;
     make2 = new builder_gcc(&plmkc4s,"makec4s",log,flags);
     make2->add_comp("-fno-rtti");
-    if(make) { // not -maker_only
-        string c4slib("-L./");
-        c4slib += make->get_build_dir();
-        c4slib += " -l";
-        c4slib += make->get_name();
-        make2->add_link(c4slib.c_str());
-    } else {
-        make2->add_comp("-DC4S_ALL_HPP");
-    }
+    string c4slib("-L./");
+    c4slib += make->get_build_dir();
+    c4slib += " -l";
+    c4slib += make->get_name();
+    make2->add_link(c4slib.c_str());
     if(make2->build()) {
         cout << "\nbuild failed\n";
-        delete make2;
-        return 2;
+        rv = 2;
     }
-    cout << "Compilation ready.\n";
+    else
+        cout << "Compilation ready.\n";
+    delete make;
     delete make2;
-    return 0;
+    return rv;
 }
 #endif
 // ==========================================================================================
