@@ -112,6 +112,7 @@ const int MAX_NESTING=50;
 #include <map>
 #include <string>
 #include <list>
+#include <unordered_map>
 #ifdef C4S_STL_EXCEPTIONS
   #include <stdexcept>
 #endif

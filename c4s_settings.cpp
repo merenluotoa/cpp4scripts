@@ -17,8 +17,11 @@ This file is part of Cpp4Scripts library.
 
 Copyright (c) Menacon Ltd, Finland
 *******************************************************************************/
+
 #ifdef C4S_LIB_BUILD
+ #include "c4s_config.hpp"
  #include "c4s_exception.hpp"
+ #include "c4s_logger.hpp"
  #include "c4s_settings.hpp"
  using namespace c4s;
  using namespace std;

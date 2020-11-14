@@ -21,9 +21,6 @@ Copyright (c) Menacon Ltd, Finland
 #ifndef C4S_SETTINGS_HPP
 #define C4S_SETTINGS_HPP
 
-#include <string>
-#include <unordered_map>
-
 namespace c4s {
 
 class settings;

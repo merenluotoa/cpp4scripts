@@ -21,6 +21,9 @@ Copyright (c) Menacon Ltd
 #ifndef C4S_EXCEPTION_HPP
 #define C4S_EXCEPTION_HPP
 
+#include <string.h>
+#include <stdexcept>
+
 namespace c4s {
 #ifndef C4S_STL_EXCEPTIONS
     /* STL exceptions have problems in some environments. Plain exceptions are offered as an alternative.
@@ -41,7 +44,7 @@ namespace c4s {
             msg[len]=0;
         }
 
-        c4s_exception(const string &m) {
+        c4s_exception(const std::string &m) {
             if(m.empty()) {
                 msg[0]=0;
                 return;
@@ -61,35 +64,35 @@ namespace c4s {
     {
     public:
         process_exception(const char *m) : c4s_exception(m) {}
-        process_exception(const string &m) : c4s_exception(m) {}
+        process_exception(const std::string &m) : c4s_exception(m) {}
     };
     //! Path exception
     class path_exception: public c4s_exception
     {
     public:
         path_exception(const char *m) : c4s_exception(m) {}
-        path_exception(const string &m) : c4s_exception(m) {}
+        path_exception(const std::string &m) : c4s_exception(m) {}
     };
 #else
     /* Cpp4Scripts standard exceptions simply inherit from STL runtime_error.*/
     //! Exception for process errors.
-    class c4s_exception : public runtime_error
+    class c4s_exception : public std::runtime_error
     {
     public:
-        c4s_exception(const string &m) : runtime_error(m) {}
+        c4s_exception(const std::string &m) : runtime_error(m) {}
     };
     //! Process exception
     class process_exception : public c4s_exception
     {
     public:
-        process_exception(const string &m) : c4s_exception(m) {}
+        process_exception(const std::string &m) : c4s_exception(m) {}
     };
 
     //! Exceptions for path errors.
     class path_exception : public c4s_exception
     {
     public:
-        path_exception(const string &m) : c4s_exception(m) {}
+        path_exception(const std::string &m) : c4s_exception(m) {}
     };
 #endif
 }

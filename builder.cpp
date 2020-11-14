@@ -42,7 +42,7 @@ path compile_dir;
 
 const char *cpp_list = "c4s_builder.cpp c4s_logger.cpp c4s_path.cpp c4s_path_list.cpp " \
     "c4s_process.cpp c4s_program_arguments.cpp c4s_util.cpp c4s_variables.cpp c4s_exception.cpp "\
-    "c4s_settingc.cpp";
+    "c4s_settings.cpp";
 const char *cpp_win = "c4s_builder_vc.cpp c4s_builder_ml.cpp";
 const char *cpp_linux = "c4s_user.cpp c4s_builder_gcc.cpp";
 
@@ -276,9 +276,9 @@ int install()
 
 #if defined(__linux) || defined(__APPLE__)
     sources.add(cpp_linux,' ');
-    path dlib(builder_gcc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
-    path rlib(builder_gcc(0,target.c_str(),0,BUILD_LIB|BUILD_RELEASE).get_target_path());
-    path make_name(builder_gcc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
+    path dlib("debug/libc4s.a");
+    path rlib("release/libc4s.a");
+    path make_name("makec4s",0,BUILD_BIN|BUILD_);
 #else
     sources.add(cpp_win,' ');
     path dlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
