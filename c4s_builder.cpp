@@ -17,7 +17,7 @@ This file is part of Cpp4Scripts library.
 
 Copyright (c) Menacon Ltd, Finland
 *******************************************************************************/
-#include <string.h>
+#include <cstring>
 #include <stdlib.h>
 #ifdef C4S_LIB_BUILD
  #include "c4s_config.hpp"
@@ -33,37 +33,66 @@ Copyright (c) Menacon Ltd, Finland
 #endif
 
 // ==================================================================================================
-c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, const int _flags, const char *subsys)
+c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, const BUILD &flags)
 /** Base builder constructor. Handles the debug/release and 32/64 architecture selection.
    \param _sources List of source files to compile.
    \param _name Name of the target binary
    \param _log If specified, will receive compiler output.
    \param _flags Combination of build flags
-   \param subsys Optional subsystem name.
 */
-    : log(_log), name(_name), flags(_flags)
+        : BUILD(flags), log(_log), name(_name)
 {
     sources = _sources;
-    flags |= get_arch();
-    if(is_set(BUILD_PAD_NAME)) {
-        build_dir = "build";
-        pad_name(build_dir, subsys, flags);
-    }
-    else {
-        build_dir = is_set(BUILD_DEBUG)?"debug":"release";
-        if(subsys) {
-            build_dir += subsys;
-            name += subsys;
-        }
-    }
+    my_sources = false;
+    build_dir = has_any(BUILD::DEBUG)?"debug":"release";
     if(log) {
         compiler.pipe_to(log);
         linker.pipe_to(log);
     }
-    if(log && is_set(BUILD_VERBOSE))
+    if(log && has_any(BUILD::VERBOSE))
         *log << "builder::builder - output dir set to: "<<build_dir<<'\n';
     timeout = 15;
 }
+// ==================================================================================================
+c4s::builder::builder(const char *_name, ostream *_log)
+/** Base builder constructor.
+    Files are automatically read from git filelist. Files with cpp-extension are considered part of
+    of the project.
+   \param _name Name of the target binary
+   \param _log If specified, will receive compiler output.
+*/
+        : log(_log), name(_name)
+{
+    if(log) {
+        compiler.pipe_to(log);
+        linker.pipe_to(log);
+    }
+    timeout = 20;
+    try {
+        sources = new path_list();
+        my_sources = true;
+        char gitline[128];
+        stringstream gitfiles;
+        process("git","ls-files", &gitfiles)(20);
+        do {
+            gitfiles.getline(gitline, sizeof(gitline));
+            // cout<<gitline<<'\n';
+            if(strstr(gitline, ".cpp"))
+                sources->add(path(gitline));
+        } while(!gitfiles.eof() && gitfiles.gcount()>0);
+    }
+    catch(const c4s_exception &ce) {
+        if(_log)
+            *_log<<"Unable to read source list from git: "<<ce.what()<<'\n';
+    }
+}
+// ------------------------------------------------------------------------------------------
+builder::~builder()
+{
+    if(my_sources && sources)
+        delete sources;
+}
+
 // ==================================================================================================
 void c4s::builder::include_variables(const char *filename)
 /*! Build variables are read from a given file. If the file is not specified environment variable
@@ -86,35 +115,21 @@ void c4s::builder::include_variables(const char *filename)
         error << "builder::include_variables - C4S_VARIABLES file "<<c4s_var_name<<" does not exist.";
         throw c4s_exception(error.str());
     }
-    if(log && is_set(BUILD_VERBOSE))
+    if(log && has_any(BUILD::VERBOSE))
         *log << "builder - including variables from: "<<inc_path.get_path()<<'\n';
     vars.include(inc_path);
 }
 // ==================================================================================================
-void c4s::builder::add_comp(const char *arg)
+void c4s::builder::add_comp(const string &arg)
 {
-#ifdef _WIN32
-    char arch[MAX_LINE];
-    strcpy(arch,arg);
-    variables::exp_arch(builder::get_arch(), arch);
-    c_opts<<vars.expand(arch, true)<<' ';
-#else
-    c_opts<<vars.expand(arg, true);
-    c_opts<<' ';
-#endif
+    if(arg.size())
+        c_opts<<vars.expand(arg, true)<<' ';
 }
 // ------------------------------------------------------------------------------------------
-void c4s::builder::add_link(const char *arg)
+void c4s::builder::add_link(const string &arg)
 {
-#ifdef _WIN32
-    char arch[MAX_LINE];
-    strcpy(arch,arg);
-    variables::exp_arch(builder::get_arch(),arch);
-    l_opts<<vars.expand(arch, true)<<' ';
-#else
-    l_opts<<vars.expand(arg, true);
-    l_opts<<' ';
-#endif
+    if(arg.size())
+        l_opts<<vars.expand(arg, true)<<' ';
 }
 // ------------------------------------------------------------------------------------------
 void c4s::builder::add_link(const compiled_file &cf)
@@ -133,7 +148,7 @@ int c4s::builder::compile(const char *out_ext, const char *out_arg, bool echo_na
 
     string prepared(vars.expand(c_opts.str()));
     try{
-        if(log && is_set(BUILD_VERBOSE))
+        if(log && has_any(BUILD::VERBOSE))
             *log << "Considering "<<sources->size()<<" source files for build.\n";
         for(src=sources->begin(); src!=sources->end(); src++)
         {
@@ -148,7 +163,7 @@ int c4s::builder::compile(const char *out_ext, const char *out_arg, bool echo_na
                 options << prepared;
                 options << ' ' << out_arg<<objfile.get_path();
                 options << ' ' << src->get_path();
-                if(log && is_set(BUILD_VERBOSE))
+                if(log && has_any(BUILD::VERBOSE))
                     *log << "  "<<options.str() <<'\n';
                 compiler.start(options.str().c_str());
                 exec=true;
@@ -157,7 +172,7 @@ int c4s::builder::compile(const char *out_ext, const char *out_arg, bool echo_na
         if(compiler.is_running()) {
             return compiler.wait_for_exit(timeout);
         }
-        if(!exec && log && is_set(BUILD_VERBOSE))
+        if(!exec && log && has_any(BUILD::VERBOSE))
             *log << "No outdated source files found.\n";
     }
     catch(const c4s_exception &ex){
@@ -179,16 +194,16 @@ int c4s::builder::link(const char *out_ext, const char *out_arg)
     path_list linkFiles(*sources, build_dir+C4S_DSEP, out_ext);
 
     try {
-        if(log && is_set(BUILD_VERBOSE))
+        if(log && has_any(BUILD::VERBOSE))
             *log << "Linking "<<target<<'\n';
-        if(is_set(BUILD_LIB))
+        if(has_any(BUILD::LIB))
             options<<' '<<vars.expand(l_opts.str())<<' ';
         if(out_arg)
             options << out_arg;
         options <<build_dir<<C4S_DSEP<<target<<' ';
-        if(is_set(BUILD_RESPFILE)) {
+        if(has_any(BUILD::RESPFILE)) {
             string respname(name+".resp");
-            if(log && is_set(BUILD_VERBOSE))
+            if(log && has_any(BUILD::VERBOSE))
                 *log << "builder::link - using response file: "<<respname<<'\n';;
             ofstream respf(respname.c_str());
             if(!respf)
@@ -203,9 +218,9 @@ int c4s::builder::link(const char *out_ext, const char *out_arg)
             if(extra_obj.size())
                 options <<' '<<extra_obj.str(' ',false);
         }
-        if(!is_set(BUILD_LIB))
+        if(!has_any(BUILD::LIB))
             options<<' '<<vars.expand(l_opts.str());
-        if(log && is_set(BUILD_VERBOSE))
+        if(log && has_any(BUILD::VERBOSE))
             *log << "Link options: "<<options.str() <<'\n';
         rv = linker.exec(3*timeout,options.str().c_str());
     }
@@ -214,79 +229,41 @@ int c4s::builder::link(const char *out_ext, const char *out_arg)
             *log << "builder::link - Error: "<<ce.what()<<'\n';
         return 2;
     }
-    //if(is_set(BUILD_RESPFILE))
-    //    path("cpp4scripts_link.resp").rm();
+#ifndef _DEBUG
+    if(has_any(BUILD::RESPFILE))
+        path("cpp4scripts_link.resp").rm();
+#endif
     return rv;
 }
 // ------------------------------------------------------------------------------------------
-void c4s::builder::print(ostream &os)
+void c4s::builder::print(ostream &os, bool list_sources)
+/**
+   \param os Reference to output stream.
+   \param list_sources If true, lists source files as well.
+ */
 {
+    using namespace std;
     os << "  COMPILER options: "<<c_opts.str()<<'\n';
-    if(is_set(BUILD_LIB))
+    if(has_any(BUILD::LIB))
         os << "  LIB options: "<<l_opts.str()<<'\n';
     else
         os << "  LINK options: "<<l_opts.str()<<'\n';
-}
-// ------------------------------------------------------------------------------------------
-int c4s::builder::get_arch()
-{
-#if defined(_WIN32)
-    string arch;
-    if(get_env_var("Platform",arch) && !arch.compare("X64"))
-        return BUILD_X64;
-    return BUILD_X32;
-#elif defined(__APPLE__)
-    return BUILD_X64;
-#else
-    string arch;
-    try {
-        process::catch_output("uname","-m",arch);
-    }catch(const c4s_exception &){
-        return BUILD_X32;
-    }
-    return arch.compare(0,6,"x86_64")==0 ? BUILD_X64:BUILD_X32;
-#endif
-}
-// ------------------------------------------------------------------------------------------
-void c4s::builder::pad_name(string &name, const char *subsys, int fval)
-{
-#if defined(__APPLE__)
-    string pad("-osx");
-#elif defined(__linux)
-    string pad("-lnx");
-#else
-    string pad("-win");
-#endif
-    if( (fval&BUILD_DEBUG)==BUILD_DEBUG ) pad+="d";
-    else pad+="r";
-#if defined(__linux) || defined(_WIN32)
-    if( (fval&BUILD_X32)==BUILD_X32 ) pad+="32";
-    else pad+="64";
-#endif
-    if(subsys)
-        pad += subsys;
-    size_t pos = name.rfind('.');
-    if(pos == string::npos)
-        name.append(pad);
-    else
-        name.insert(pos,pad);
-}
-// ------------------------------------------------------------------------------------------
-void c4s::builder::clean_build_dir()
-/*! removes the build directory designated by the given flags. Call repeatedly to delete
-  more than one directory.
-  \param flags Combination of flags that was used to create binary.
- */
-{
-    path bd;
-    bd.set_dir(build_dir);
-    if(bd.dirname_exists()) {
-        cout << "builder - removing: "<<bd.get_dir()<<'\n';
-        bd.rmdir(true);
+
+    if(list_sources) {
+        os << "  Source files:\n";
+        list<path>::iterator src;
+        for(src=sources->begin(); src!=sources->end(); src++) {
+            os << "    "<<src->get_base() <<'\n';
+        }
     }
 }
 // ------------------------------------------------------------------------------------------
 int c4s::builder::update_build_no(const char *filename)
+/** Function opens the named file and increments the last number seen in the file. No special
+    tags are needed. File is expected to be very short, just a variable declaration with version
+    string.
+    \param filename Relative path to the version file.
+ */
 {
     char *vbuffer, *tail, *head, *dummy, bno_str[24];
     ifstream fbn(filename);

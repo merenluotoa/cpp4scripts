@@ -16,22 +16,29 @@ void test1()
     cout << "Updating build number file\n";
     int rv = builder::update_build_no("build_no.txt");
     if(rv) {
-        cout << "Update failed with error: "<<re<<'\n';
+        cout << "Update failed with error: "<<rv<<'\n';
         return;
     }
     cout << "OK\n";
 }
 
+void test2()
+{
+    cout << "List cpp files in project\n";
+    builder_gcc make("test2", &cout);
+    make.print(cout, true);
+}
+
 // ==========================================================================================
 int main(int argc, char **argv)
 {
-    const int tmax = 1;
-    tfptr tfunc[tmax] = { &test1 };
+    const int tmax = 2;
+    tfptr tfunc[tmax] = { &test1, &test2 };
     args += argument("-t",  true, "Sets VALUE as the test to run.");
 
     try{
         args.initialize(argc,argv,1);
-    }catch(c4s_exception){
+    }catch(const c4s_exception &){
         cout << "Builder test program\n";
         args.usage();
         return 1;

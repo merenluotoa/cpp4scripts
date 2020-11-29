@@ -84,7 +84,6 @@ int main(int argc, char **argv)
 #else
     args += argument("-c4s",true,  "Path where Cpp4Scripts is installed. If not defined, then $C4S is tried and then '/usr/local/'");
 #endif
-    args += argument("-CXX",false, "Requests the makec4s to read the C++ compiler name from CXX environment variable.");
     args += argument("-a",  false, "Use the 'all inclusive' sources i.e. without the CPP4Scripts library.");
     args += argument("-inc",true,  "External inlcude file to add to the build.");
     args += argument("-l",  true,  "Environment label to apend to executable name.");
@@ -142,30 +141,25 @@ int main(int argc, char **argv)
         debug = args.is_set("-deb") ? true:false;
 
     if(args.is_set("-def")) {
-        int flags = BUILD_BIN;
-        flags |= debug?BUILD_DEBUG:BUILD_RELEASE;
-        if(args.is_set("-CXX"))
-            flags |= BUILD_ENV_VAR;
+        BUILD flags(BUILD::BIN);
+        flags.add(debug ? BUILD::DEBUG : BUILD::RELEASE);
         try {
 #if defined(__linux) || defined(__APPLE__)
             builder_gcc gcc(0, "dummy", 0, flags);
             cout << "Binary build default options:\n";
             gcc.print(cout);
             cout << "Library build default options:\n";
-            flags &= ~BUILD_BIN;
-            flags |= BUILD_LIB;
+            flags.clear(BUILD::BIN);
+            flags.set(BUILD::LIB);
             builder_gcc link(0, "dummy", 0, flags);
             link.print(cout);
-            string name("[binary name]");
-            builder::pad_name(name,0,flags);
-            cout << "Name padding: "<<name<<'\n';
 #else
             builder_vc vc(0, "dummy", 0, flags);
             cout << "Binary build default options:\n";
             vc.print(cout);
             cout << "Library build default options:\n";
-            flags &= ~BUILD_BIN;
-            flags |= BUILD_LIB;
+            flags.clear(BUILD::BIN);
+            flags.set(BUILD::LIB);
             builder_vc link(0, "dummy", 0, flags);
             link.print(cout);
 #endif
@@ -211,17 +205,12 @@ int main(int argc, char **argv)
         target += '-';
         target += args.get_value("-l");
     }
+    int flags = BUILD::BIN;
+    flags |= debug ? BUILD::DEBUG : BUILD::RELEASE;
+    if(verbose)
+        flags |= BUILD::VERBOSE;
     builder *make=0;
     try {
-        int flags = BUILD_BIN;
-        flags |= debug ? BUILD_DEBUG : BUILD_RELEASE;
-        if(verbose)
-            flags |= BUILD_VERBOSE;
-        if(args.is_set("-CXX"))
-            flags |= BUILD_ENV_VAR;
-
-        int arch = builder::get_arch();
-        flags |= arch;
 #ifdef _WIN32
         // ............................................................
         // Windows with Visual Studio. TODO: add parameter so that gcc could be used as well.
@@ -270,10 +259,10 @@ int main(int argc, char **argv)
                 make->add_link("-L$(C4S)/lib");
         }
 #endif
-        if(!make) {
-            cout << "Only Windows, Linux and OSX environments are supported.\n";
-            return 1;
-        }
+        make->set(BUILD::BIN);
+        make->set(debug ? BUILD::DEBUG : BUILD::RELEASE);
+        if(verbose)
+            make->set(BUILD::VERBOSE);
         if(args.is_set("-inc"))
             make->add_comp(args.get_value("-inc").c_str());
         if(args.is_set("-lib"))

@@ -39,7 +39,6 @@ namespace c4s {
         void include(const path &);
         string expand(const string&, bool se=false);
         void push_back(const string &key, const string &value) { vmap[key] = value; }
-        static void exp_arch(int arch, char *var);
 
     protected:
         map<string,string> vmap;

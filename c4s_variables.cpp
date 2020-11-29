@@ -113,22 +113,6 @@ void c4s::variables::include(const path &inc_file)
     inc.close();
 }
 // ==================================================================================================
-void c4s::variables::exp_arch(int arch, char *var)
-{
-    char *ba = strstr(var,"$$");
-    while(ba) {
-        if(arch==BUILD_X32) {
-            ba[0]='3';
-            ba[1]='2';
-        }else{
-            ba[0]='6';
-            ba[1]='4';
-        }
-        var = ba;
-        ba = strstr(var,"$$");
-    }
-}
-// ==================================================================================================
 string c4s::variables::expand(const string &source, bool se)
 /*! Expands variables in the given source string. Variables have form $(name). Passed variables will
   always override the environment variables. Throws 'c4s_exception' if variable is not

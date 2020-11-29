@@ -23,15 +23,20 @@ Copyright (c) Menacon Ltd
 
 namespace c4s {
 
-    //! Builder for g++ in GCC
-    class builder_gcc : public builder
-    {
-    public:
-        //! g++ builder constructor
-        builder_gcc(path_list *sources, const char *name, ostream *log, const int flags,const char *subsys=0, const char *args=0);
-        //! Executes the build.
-        int build();
-    };
+//! Builder for g++ in GCC
+class builder_gcc : public builder
+{
+public:
+    //! g++ builder constructor
+    builder_gcc(path_list *sources, const char *name, ostream *log, const BUILD &);
+    builder_gcc(const char *name, ostream *log);
+    //! Executes the build.
+    int build();
+private:
+    void parse_flags();
+    bool late_flags;
+};
+
 }
 
 #endif

@@ -569,11 +569,11 @@ void c4s::set_owner_mode(const char *dirname, int userid, int groupid, int dirmo
 #endif // __linux || __APPLE__
 // ==================================================================================================
 // Bitwice functions
-bool c4s::has_any(uint32_t target, uint32_t bits) {
+bool c4s::has_anybits(uint32_t target, uint32_t bits) {
     uint32_t val = target&bits;
     return val>0 ? true : false;
 }
-bool c4s::has_all(uint32_t target, uint32_t bits) {
+bool c4s::has_allbits(uint32_t target, uint32_t bits) {
     uint32_t val = target&bits;
     return val==target ? true : false;
 }
