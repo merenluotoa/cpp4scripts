@@ -40,47 +40,46 @@ c4s::builder_ml::builder_ml(path_list *_sources, const char *_name, ostream *_lo
 {
     string pdb;
 
-    if(is_set(BUILD_X32)) compiler.set_command("ml");
-    else compiler.set_command("ml64");
+    compiler.set_command("ml64");
 
-    const char *arch = is_set(BUILD_X32)?"32":"64";
-    if(log && is_set(BUILD_VERBOSE)){
+    const char *arch = has_any(BUILD::X32)?"32":"64";
+    if(log && has_any(BUILD::VERBOSE)){
         *log << "builder_ml - "<<arch<<"bit environment detected.\n";
     }
 
     // Set the default flags
-    if( !is_set(BUILD_NODEFARGS)) {
+    if( !has_any(BUILD::NODEFARGS)) {
         c_opts << "/nologo ";
-        if(is_set(BUILD_DEBUG)) {
+        if(has_any(BUILD::DEBUG)) {
             c_opts << "/Zi ";
         }
         if(sources && sources->size()>1)
             c_opts << "/c ";
-        if(is_set(BUILD_X32))
+        if(has_any(BUILD::X32))
             c_opts << "/coff ";
     }
     // Set the target name
     target = name;
-    if( is_set(BUILD_LIB) ) {
+    if( has_any(BUILD::LIB) ) {
         linker.set_command("lib");
         target += ".lib";
-    } else if(!is_set(BUILD_NOLINK)){
+    } else if(!has_any(BUILD::NOLINK)){
         linker.set_command("link");
         target += ".exe";
     }
-    if(is_set(BUILD_PAD_NAME)) {
+    if(has_any(BUILD::PAD_NAME)) {
         pad_name(name,subsys,flags);
         pad_name(target,subsys,flags);
     }
-    if( !is_set(BUILD_NODEFARGS) && !is_set(BUILD_NOLINK)) {
+    if( !has_any(BUILD::NODEFARGS) && !has_any(BUILD::NOLINK)) {
         l_opts << "/nologo /SUBSYSTEM:CONSOLE ";
-        if( is_set(BUILD_DEBUG) ) {
+        if( has_any(BUILD::DEBUG) ) {
             l_opts << "/DEBUG ";
         }
         else {
             l_opts << "/RELEASE ";
         }
-        if( is_set(BUILD_X64) )
+        if( has_any(BUILD::X64) )
             l_opts << "/MACHINE:X64 ";
     }
 }
@@ -97,7 +96,7 @@ int c4s::builder_ml::build()
         path src = sources->front();
         single << " /Fo"<<target;
         single << ' ' << c_opts.str() << ' '<< src.get_base()<<" /link " << l_opts.str();
-        if(log && is_set(BUILD_VERBOSE) )
+        if(log && has_any(BUILD::VERBOSE) )
             *log << "Compiling: "<<vars.expand(single.str())<<'\n';
         return compiler.exec(20,vars.expand(single.str()).c_str());
     }
@@ -105,14 +104,14 @@ int c4s::builder_ml::build()
     path buildp(build_dir+C4S_DSEP);
     if(!buildp.dirname_exists()) {
         buildp.mkdir();
-        if(log && is_set(BUILD_VERBOSE) )
+        if(log && has_any(BUILD::VERBOSE) )
             *log << "builder_ml - created build directory:"<<buildp.get_path()<<'\n';
     }
     // Call parent to do the job.
-    if(log && is_set(BUILD_VERBOSE) )
+    if(log && has_any(BUILD::VERBOSE) )
         builder::print(*log);
     int rv = builder::compile(".obj","/Fo ",false);
-    if(!rv && !is_set(BUILD_NOLINK))
+    if(!rv && !has_any(BUILD::NOLINK))
         return builder::link(".obj","/OUT:");
     return rv;
 }

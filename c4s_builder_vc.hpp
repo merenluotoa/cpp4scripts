@@ -28,7 +28,7 @@ namespace c4s {
     {
     public:
         //! Constructor for Microsoft Visual Studio builder.
-        builder_vc(path_list *sources, const char *name, ostream *log, const int flags, const char *subsys=0);
+        builder_vc(path_list *sources, const char *name, ostream *log, const BUILDF &);
         int build();
         //! Helper function for MS VC to create precompiled headers.
         int precompile(const char *name, const char *content, const char *stopname);

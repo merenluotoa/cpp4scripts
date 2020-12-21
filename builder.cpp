@@ -72,7 +72,7 @@ int build(ostream *log)
 
     if(args.is_set("-u") && builder::update_build_no("c4s_version.cpp"))
         cout << "Warning: Unable to update build number.\n";
-    int flags = BUILD_LIB;
+    BUILD build_flags(BUILD::LIB);
     if(!args.is_set("-deb") && !args.is_set("-rel")) {
 #ifdef __APPLE__
         // This piece of code is for Xcode which passes build options via environment.
@@ -83,9 +83,9 @@ int build(ostream *log)
         }
         if(scheme.compare("YES")==0){
             debug = true;
-            flags |= BUILD_DEBUG;
+            build_flags.add(BUILD::DEBUG);
         } else
-            flags |= BUILD_RELEASE;
+            build_flags.add(BUILD::RELEASE);
 #else
         cout << "Missing target! Please specify -deb or -rel as parameter.\n";
         return 2;
@@ -94,14 +94,12 @@ int build(ostream *log)
     else {
         if(args.is_set("-deb")) {
             debug = true;
-            flags |= BUILD_DEBUG;
+            build_flags.add(BUILD::DEBUG);
         }else
-            flags |= BUILD_RELEASE;
+            build_flags.add(BUILD::RELEASE);
     }
     if(args.is_set("-V"))
-        flags |= BUILD_VERBOSE;
-    if(args.is_set("-CXX"))
-        flags |= BUILD_ENV_VAR;
+        build_flags.add(BUILD::VERBOSE);
 
     cout << "Building library\n";
 
@@ -113,7 +111,7 @@ int build(ostream *log)
         target += '-';
         target += args.get_value("-l");
     }
-    make = new builder_gcc(&cppFiles,target.c_str(),log,flags);
+    make = new builder_gcc(&cppFiles,target.c_str(),log,build_flags);
     if(args.is_set("-t"))
         make->add_comp("-DC4S_DEBUGTRACE");
     make->add_comp("-fno-rtti -DC4S_LIB_BUILD");
@@ -128,16 +126,14 @@ int build(ostream *log)
     path_list plmkc4s;
     plmkc4s += path("makec4s.cpp");
     /* Padding is not needed for library since the build directory names are always padded.*/
-    flags = BUILD_BIN;
-    if(debug) flags |=  BUILD_DEBUG;
-    else flags |= BUILD_RELEASE;
+    build_flags.set(BUILD::BIN);
+    if(debug) build_flags.set(BUILD::DEBUG);
+    else build_flags.set(BUILD::RELEASE);
     if(args.is_set("-V"))
-        flags |= BUILD_VERBOSE;
-    if(args.is_set("-CXX"))
-        flags |= BUILD_ENV_VAR;
+        build_flags.set(BUILD::VERBOSE);
 
     int rv = 0;
-    make2 = new builder_gcc(&plmkc4s,"makec4s",log,flags);
+    make2 = new builder_gcc(&plmkc4s,"makec4s",log, build_flags);
     make2->add_comp("-fno-rtti");
     string c4slib("-L./");
     c4slib += make->get_build_dir();
@@ -160,17 +156,11 @@ int build(ostream *log)
 int build(ostream *log)
 {
     std::ostringstream liblog;
-    int rv=0,flags;
+    int rv=0;
 
     cout << "Building library\n";
     if(args.is_set("-u") && builder::update_build_no("c4s_version.cpp"))
         cout << "Warning: Unable to update build number\n";
-    flags = BUILD_LIB;
-    flags |= args.is_set("-deb") ? BUILD_DEBUG:BUILD_RELEASE;
-    if(args.is_set("-V"))
-        flags |= BUILD_VERBOSE;
-    if(args.is_set("-CXX"))
-        cout << "Warning: -CXX is not supported for Visual Studio\n";
 
     path_list cppFiles(cpp_list,' ');
     cppFiles.add(cpp_win,' ');
@@ -180,10 +170,13 @@ int build(ostream *log)
         target += '-';
         target += args.get_value("-l");
     }
-    builder *make = new builder_vc(&cppFiles,target.c_str(),log,flags);
+    builder *make = new builder_vc(&cppFiles,target.c_str(),log,BUILD(BUILD::LIB));
     make->add_comp("/DC4S_LIB_BUILD /D_CRT_SECURE_NO_WARNINGS");
     if(args.is_set("-xp"))
         make->add_comp("/D_WIN32_WINNT=0x0501");
+    *make |= args.is_set("-deb") ? BUILD::DEBUG:BUILD::RELEASE;
+    if(args.is_set("-V"))
+        *make |= BUILD::VERBOSE;
     if(make->build()) {
         cout << "Build failed\n";
         return 2;
@@ -194,19 +187,15 @@ int build(ostream *log)
         *log << endl;
     path_list plmkc4s;
     plmkc4s += path("makec4s.cpp");
-    flags = BUILD_BIN;
-    if(args.is_set("-deb"))
-        flags |= BUILD_DEBUG;
-    else
-        flags |= BUILD_RELEASE;
-    if(args.is_set("-V"))
-        flags |= BUILD_VERBOSE;
-    builder *make2 = new builder_vc(&plmkc4s,"makec4s",log,flags);
+    builder *make2 = new builder_vc(&plmkc4s,"makec4s",log,BUILD(BUILD::BIN));
     make2->add_link("Advapi32.lib ");
     string c4slib(make->get_target_name());
     c4slib += " /LIBPATH:";
     c4slib += make->get_build_dir();
     make2->add_link(c4slib.c_str());
+    *make2 |= args.is_set("-deb") ? BUILD::DEBUG:BUILD::RELEASE;
+    if(args.is_set("-V"))
+        *make2 |= BUILD::VERBOSE;
     if(make2->build()) {
         cout << "Build failed\n";
         return 2;
@@ -220,13 +209,12 @@ int build(ostream *log)
 // ==========================================================================================
 int clean()
 {
-#if defined(__linux) || defined(__APPLE__)
-    builder_gcc(0,"debug",0,BUILD_DEBUG).clean_build_dir();
-    builder_gcc(0,"release",0,BUILD_RELEASE).clean_build_dir();
-#else
-    builder_vc(0,"debug",0,BUILD_DEBUG).clean_build_dir();
-    builder_vc(0,"release",0,BUILD_RELEASE).clean_build_dir();
-#endif
+    path deb("./debug/");
+    if(deb.dirname_exists())
+        deb.rmdir(true);
+    path rel("./release/");
+    if(rel.dirname_exists())
+        rel.rmdir(true);
     path_list tmp(args.exe,"*.log");
     tmp.add(args.exe,"*~");
     tmp.add(args.exe,"*.obj");
@@ -263,11 +251,6 @@ int install()
         cout << "Copying headers and sources.\n";
     }
     path_list sources(cpp_list,' ');
-    int arch = builder::get_arch();
-    if(args.is_set("-V")) {
-        const char *archtxt = arch==BUILD_X64?"64-bit":"32-bit";
-        cout << "Running in "<<archtxt<<" environment\n";
-    }
     string target = "c4s";
     if(args.is_set("-l")) {
         target += '-';
@@ -278,12 +261,12 @@ int install()
     sources.add(cpp_linux,' ');
     path dlib("debug/libc4s.a");
     path rlib("release/libc4s.a");
-    path make_name("makec4s",0,BUILD_BIN|BUILD_);
+    path make_name("makec4s");
 #else
     sources.add(cpp_win,' ');
-    path dlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_DEBUG).get_target_path());
-    path rlib(builder_vc(0,target.c_str(),0,BUILD_LIB|BUILD_RELEASE).get_target_path());
-    path make_name(builder_vc(0,"makec4s",0,BUILD_BIN|BUILD_RELEASE).get_target_name());
+    path dlib(builder_vc(0,target.c_str(),0,BUILD::LIB|BUILD::DEBUG).get_target_path());
+    path rlib(builder_vc(0,target.c_str(),0,BUILD::LIB|BUILD::RELEASE).get_target_path());
+    path make_name(builder_vc(0,"makec4s",0,BUILD::BIN|BUILD::RELEASE).get_target_name());
 #endif
     int lib_count=0;
     if(dlib.exists()) {

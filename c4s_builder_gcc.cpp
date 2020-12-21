@@ -26,38 +26,35 @@ Copyright (c) Menacon Oy, Finland
  #include "c4s_path_list.hpp"
  #include "c4s_process.hpp"
  #include "c4s_compiled_file.hpp"
+ #include "c4s_util.hpp"
  #include "c4s_builder.hpp"
  #include "c4s_builder_gcc.hpp"
- #include "c4s_util.hpp"
  using namespace c4s;
 #endif
 
-c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_log, const int _flags, const char *subsys, const char *args)
-    : builder(_sources,_name,_log,_flags,subsys)
+c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_log, const BUILD &build_flags)
+    : builder(_sources,_name,_log, build_flags)
+{
+    parse_flags();
+    late_flags = false;
+}
+// ------------------------------------------------------------------------------------------
+c4s::builder_gcc::builder_gcc(const char *_name, ostream *_log)
+    : builder(_name, _log)
+{
+    late_flags = true;
+}
+// ------------------------------------------------------------------------------------------
+void c4s::builder_gcc::parse_flags()
 {
     // Determine the compiler name
     string gpp,link;
-    if(is_set(BUILD_ENV_VAR)) {
-        // \TODO We should add a check for BUILD_PLAIN_C here
-        if(!get_env_var("CXX",gpp))
-            throw c4s_exception("builder_gcc - Unable to find required CXX environment variable.");
-        if(log && is_set(BUILD_VERBOSE))
-            *log << "builder_gcc::builder_gcc - Using CXX environment variable for compiler:"<<gpp<<'\n';
-        link = gpp;
-    }
-    else {
-
-        gpp = is_set(BUILD_PLAIN_C)?"gcc":"g++";
-        link = is_set(BUILD_PLAIN_C)?"gcc":"g++";
-    }
+    gpp = has_any(BUILD::PLAIN_C)?"gcc":"g++";
+    link = has_any(BUILD::PLAIN_C)?"gcc":"g++";
     compiler.set_command(gpp.c_str());
 
-    const char *arch = is_set(BUILD_X32)?"32":"64";
-    if(log && is_set(BUILD_VERBOSE)) {
-        *log << "build_gcc - "<<arch<<"bit environment detected.\n";
-    }
     // Determine the real target name.
-    if(is_set(BUILD_LIB)) {
+    if(has_any(BUILD::LIB)) {
         linker.set_command("ar");
         target = "lib";
         target += name;
@@ -67,21 +64,21 @@ c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_
     else {
         target = name;
         linker.set_command(link.c_str());
-        if(is_set(BUILD_SO)) {
+        if(has_any(BUILD::SO)) {
             c_opts << "-fpic ";
             l_opts << "-shared -fpic ";
             target += ".so";
         }
         l_opts << "-fexceptions -pthread ";
     }
-    if(is_set(BUILD_PAD_NAME)) {
-        pad_name(name,subsys,flags);
-        pad_name(target,subsys,flags);
+
+    if(build_dir.size()==0) {
+        build_dir = has_any(BUILD::DEBUG)?"debug":"release";
+        if(log && has_any(BUILD::VERBOSE))
+            *log << "builder::builder - output dir set to: "<<build_dir<<'\n';
     }
 
-    if(args)
-        c_opts << args << ' ';
-    else {
+    if(!has_any(BUILD::NODEFARGS)) {
 #if __GNUC__ >= 5
         c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef -Wno-unused-result -std=c++14 ";
 #elif defined(__APPLE__) && __clang_major__>=5
@@ -90,29 +87,32 @@ c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_
         c_opts << "-Wall -fexceptions -pthread -fuse-cxa-atexit -Wundef -Wno-unused-result ";
 #endif
     }
-    if(is_set(BUILD_DEBUG)) {
+
+    if(has_any(BUILD::DEBUG)) {
         c_opts << "-ggdb -O0 -D_DEBUG ";
-        if(!is_set(BUILD_LIB)) {
+        if(!has_any(BUILD::LIB)) {
             l_opts << "-ggdb -O0 ";
         }
     }
     else {
         c_opts << "-O2 ";
-        if(!is_set(BUILD_LIB)) {
+        if(!has_any(BUILD::LIB)) {
             l_opts << "-O2 ";
         }
     }
-    if(is_set(BUILD_WIDECH))
+    if(has_any(BUILD::WIDECH))
         c_opts << "-D_UNICODE -DUNICODE ";
     if(sources && sources->size()>1)
         c_opts << "-c ";
 }
-
 // ==================================================================================================
 int c4s::builder_gcc::build()
 {
     if(!sources)
         throw c4s_exception("builder_gcc::build - no sources to build.");
+    if(late_flags)
+        parse_flags();
+
     // Only one file?
     if(sources->size()==1) {
         // Combine compile and link.
@@ -122,7 +122,7 @@ int c4s::builder_gcc::build()
         single << "-o " << target << ' ' << src.get_base()<<' ';
         single << l_opts.str();
         try {
-            if(log && is_set(BUILD_VERBOSE)) {
+            if(log && has_any(BUILD::VERBOSE)) {
                 *log << "Compiling "<<src.get_base()<<'\n';
                 *log << "Compile parameters: "<<single.str()<<'\n';
             }
@@ -136,22 +136,22 @@ int c4s::builder_gcc::build()
     // Make sure build dir exists
     path buildp(build_dir+C4S_DSEP);
     if(!buildp.dirname_exists()) {
-        if(log && is_set(BUILD_VERBOSE) )
+        if(log && has_any(BUILD::VERBOSE) )
             *log << "builder_gcc - created build directory:"<<buildp.get_path()<<'\n';
         buildp.mkdir();
     }
     // Call parent to do the job
-    if(log && is_set(BUILD_VERBOSE) )
+    if(log && has_any(BUILD::VERBOSE) )
         builder::print(*log);
     int rv = builder::compile(".o","-o ",true);
     if(!rv) {
-        if(is_set(BUILD_LIB))
+        if(has_any(BUILD::LIB))
             rv = builder::link(".o",0);
         else
             rv = builder::link(".o","-o ");
         if(!rv) return 0;
     }
-    if(log && is_set(BUILD_VERBOSE) )
+    if(log && has_any(BUILD::VERBOSE) )
         *log << "builder_gcc::build - Mapping return value "<<rv<<" to 4\n";
     return 4;
 }

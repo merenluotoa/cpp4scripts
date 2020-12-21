@@ -49,55 +49,55 @@ c4s::builder_vc::builder_vc(path_list *_sources, const char *_name, ostream *_lo
     string pdb;
 
     compiler.set_command("cl");
-    if(log && is_set(BUILD_VERBOSE)){
-        const char *arch = is_set(BUILD_X32)?"32":"64";
+    if(log && has_any(BUILD::VERBOSE)){
+        const char *arch = has_any(BUILD::X32)?"32":"64";
         *log << "build_vc - "<<arch<<"-bit environment detected.\n";
     }
     precompiled = false;
     static_runtime = false;
 
     // Set the default flags
-    if( !is_set(BUILD_NODEFARGS)) {
+    if( !has_any(BUILD::NODEFARGS)) {
         c_opts << "/nologo /EHsc /Gy /W3 /Ob1 /Gd ";
-        if(is_set(BUILD_DEBUG)) {
+        if(has_any(BUILD::DEBUG)) {
             c_opts << "/Od /Zi /GS /RTC1 ";
         }
         else {
             c_opts << "/O2 /GS- ";
         }
-        if(is_set(BUILD_WIDECH))
+        if(has_any(BUILD::WIDECH))
             c_opts << "/Zc:wchar_t /DUNICODE /D_UNICODE ";
-        if(is_set(BUILD_X64))
+        if(has_any(BUILD::X64))
             c_opts << "/favor:blend ";
         if(sources && sources->size()>1)
             c_opts << "/c ";
     }
     // Determine the target name
     target = name;
-    if( is_set(BUILD_LIB) ) {
+    if( has_any(BUILD::LIB) ) {
         linker.set_command("lib");
         target += ".lib";
     } else {
         linker.set_command("link");
-        target += is_set(BUILD_BIN) ? ".exe":".dll";
+        target += has_any(BUILD::BIN) ? ".exe":".dll";
     }
-    if(is_set(BUILD_PAD_NAME)) {
+    if(has_any(BUILD::PAD_NAME)) {
         pad_name(name,subsys,flags);
         pad_name(target,subsys,flags);
     }
 
-    if( !is_set(BUILD_NODEFARGS) && !is_set(BUILD_NOLINK)) {
+    if( !has_any(BUILD::NODEFARGS) && !has_any(BUILD::NOLINK)) {
         l_opts << "/NOLOGO ";
-        if( is_set(BUILD_X64) )
+        if( has_any(BUILD::X64) )
             l_opts << "/MACHINE:X64 ";
-        if( is_set(BUILD_LIB) )
+        if( has_any(BUILD::LIB) )
             return;
-        if( is_set(BUILD_GUI) ) l_opts << "/SUBSYSTEM:WINDOWS ";
+        if( has_any(BUILD::GUI) ) l_opts << "/SUBSYSTEM:WINDOWS ";
         else l_opts << "/SUBSYSTEM:CONSOLE ";
-        if( is_set(BUILD_SO))
+        if( has_any(BUILD::SO))
             l_opts << "/DLL /IMPLIB:"<<build_dir<<C4S_DSEP<<name<<".lib ";
-        if( !is_set(BUILD_LIB) ) {
-            if( is_set(BUILD_DEBUG) ) l_opts << "/DEBUG ";
+        if( !has_any(BUILD::LIB) ) {
+            if( has_any(BUILD::DEBUG) ) l_opts << "/DEBUG ";
             else l_opts << "/RELEASE ";
         }
     }
@@ -109,7 +109,7 @@ int c4s::builder_vc::build()
     if(!sources)
         throw c4s_exception("builder_vc::build - sources have not been defined.");
     // We add this flag at the last minute to make sure caller has time to set the static_runtime flag.
-    if(is_set(BUILD_DEBUG)) {
+    if(has_any(BUILD::DEBUG)) {
         if(static_runtime) c_opts << "/MTd ";
         else c_opts << "/MDd ";
     }
@@ -123,27 +123,27 @@ int c4s::builder_vc::build()
         ostringstream single;
         path src = sources->front();
         single << " /Fe"<<target;
-        if(is_set(BUILD_DEBUG))
+        if(has_any(BUILD::DEBUG))
             single << " /Fd"<<name<<".pdb";
         single << ' ' << c_opts.str() << ' '<< src.get_base()<<" /link " << l_opts.str();
-        if(log && is_set(BUILD_VERBOSE) )
+        if(log && has_any(BUILD::VERBOSE) )
             *log << "Compiling: "<<vars.expand(single.str())<<'\n';
         return compiler.exec(20,vars.expand(single.str()).c_str());
     }
-    if(is_set(BUILD_DEBUG) || precompiled) {
+    if(has_any(BUILD::DEBUG) || precompiled) {
         c_opts << "/Fd" <<build_dir<<C4S_DSEP<<name<<".pdb ";
-        if( !is_set(BUILD_LIB) )
+        if( !has_any(BUILD::LIB) )
             l_opts << "/PDB:"<<build_dir<<C4S_DSEP<<name<<".pdb ";
     }
     // Make sure build directory exists.
     path buildp(build_dir+C4S_DSEP);
     if(!buildp.dirname_exists()) {
-        if(log && is_set(BUILD_VERBOSE) )
+        if(log && has_any(BUILD::VERBOSE) )
             *log << "builder_vc - created build directory:"<<buildp.get_path()<<'\n';
         buildp.mkdir();
     }
     // Call parent to do the job.
-    if(log && is_set(BUILD_VERBOSE) )
+    if(log && has_any(BUILD::VERBOSE) )
         builder::print(*log);
     int rv = builder::compile(".obj","/Fo",false);
     if(!rv)
@@ -170,7 +170,7 @@ int c4s::builder_vc::precompile(const char *pchname, const char *content, const 
     // Make sure build directory exists.
     if(!pch.dirname_exists()) {
         pch.mkdir();
-        if(log && is_set(BUILD_VERBOSE) )
+        if(log && has_any(BUILD::VERBOSE) )
             *log << "builder_vc - created build directory:"<<pch.get_dir()<<'\n';
     }
 
@@ -185,7 +185,7 @@ int c4s::builder_vc::precompile(const char *pchname, const char *content, const 
     pchsrc.close();
 
     // We add this flag at the last minute to make sure caller has time to set the static_runtime flag.
-    if(is_set(BUILD_DEBUG)) {
+    if(has_any(BUILD::DEBUG)) {
         if(static_runtime) c_opts << "/MTd ";
         else c_opts << "/MDd ";
     }
@@ -202,7 +202,7 @@ int c4s::builder_vc::precompile(const char *pchname, const char *content, const 
     if(c_opts.str().find("/c") == string::npos)
         params << " /c";
     params << ' ' << cpp.get_path();
-    if(log && is_set(BUILD_VERBOSE) )
+    if(log && has_any(BUILD::VERBOSE) )
         *log << "Precompiling: "<< params.str() <<'\n';
     int rv = compiler.exec(40,params.str().c_str());
     if(!rv)

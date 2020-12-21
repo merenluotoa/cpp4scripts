@@ -28,7 +28,7 @@ namespace c4s {
     {
     public:
         //! Constructor for Microsoft Macro Assembler
-        builder_ml(path_list *sources, const char *name, ostream *log, const int flags, const char *subsys=0);
+        builder_ml(path_list *sources, const char *name, ostream *log, const BUILDF &);
         int build();
     };
 }
