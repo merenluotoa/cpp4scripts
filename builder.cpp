@@ -209,13 +209,12 @@ int build(ostream *log)
 // ==========================================================================================
 int clean()
 {
-#if defined(__linux) || defined(__APPLE__)
-    builder_gcc(0,"debug",0,BUILD::DEBUG).clean_build_dir();
-    builder_gcc(0,"release",0,BUILD::RELEASE).clean_build_dir();
-#else
-    builder_vc(0,"debug",0,BUILD::DEBUG).clean_build_dir();
-    builder_vc(0,"release",0,BUILD::RELEASE).clean_build_dir();
-#endif
+    path deb("./debug/");
+    if(deb.dirname_exists())
+        deb.rmdir(true);
+    path rel("./release/");
+    if(rel.dirname_exists())
+        rel.rmdir(true);
     path_list tmp(args.exe,"*.log");
     tmp.add(args.exe,"*~");
     tmp.add(args.exe,"*.obj");
