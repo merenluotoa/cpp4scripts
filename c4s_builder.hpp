@@ -25,8 +25,8 @@ class BUILD : public flags32_base
 {
 public:
     static const flag32 NONE     = 0x000; //!< No flags.
-    static const flag32 DEBUG    = 0x001; //!< Builds a debug version
-    static const flag32 RELEASE  = 0x002; //!< Builds a release version
+    static const flag32 DEB      = 0x001; //!< Builds a debug version
+    static const flag32 REL      = 0x002; //!< Builds a release version
     static const flag32 BIN      = 0x010; //!< Builds a normal binary.
     static const flag32 SO       = 0x020; //!< Builds a dynamic library (DLL or SO)
     static const flag32 LIB      = 0x040; //!< Builds a library

@@ -32,6 +32,8 @@ namespace c4s {
     public:
         //! Initializes an empty stack.
         path_stack() {}
+        //! Changes into given directory and saves the original into the stack.
+        path_stack(const path &cdto) { push(cdto); }
         //! Destroys the stack and restores the original directory.
         ~path_stack() { if(pstack.size() > 0) pstack.front().cd(); }
         //! Pushes current dir to stack and changes to given directory
