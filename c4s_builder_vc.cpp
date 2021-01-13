@@ -59,7 +59,7 @@ c4s::builder_vc::builder_vc(path_list *_sources, const char *_name, ostream *_lo
     // Set the default flags
     if( !has_any(BUILD::NODEFARGS)) {
         c_opts << "/nologo /EHsc /Gy /W3 /Ob1 /Gd ";
-        if(has_any(BUILD::DEBUG)) {
+        if(has_any(BUILD::DEB)) {
             c_opts << "/Od /Zi /GS /RTC1 ";
         }
         else {
@@ -97,7 +97,7 @@ c4s::builder_vc::builder_vc(path_list *_sources, const char *_name, ostream *_lo
         if( has_any(BUILD::SO))
             l_opts << "/DLL /IMPLIB:"<<build_dir<<C4S_DSEP<<name<<".lib ";
         if( !has_any(BUILD::LIB) ) {
-            if( has_any(BUILD::DEBUG) ) l_opts << "/DEBUG ";
+            if( has_any(BUILD::DEB) ) l_opts << "/DEBUG ";
             else l_opts << "/RELEASE ";
         }
     }
@@ -109,7 +109,7 @@ int c4s::builder_vc::build()
     if(!sources)
         throw c4s_exception("builder_vc::build - sources have not been defined.");
     // We add this flag at the last minute to make sure caller has time to set the static_runtime flag.
-    if(has_any(BUILD::DEBUG)) {
+    if(has_any(BUILD::DEB)) {
         if(static_runtime) c_opts << "/MTd ";
         else c_opts << "/MDd ";
     }
@@ -123,14 +123,14 @@ int c4s::builder_vc::build()
         ostringstream single;
         path src = sources->front();
         single << " /Fe"<<target;
-        if(has_any(BUILD::DEBUG))
+        if(has_any(BUILD::DEB))
             single << " /Fd"<<name<<".pdb";
         single << ' ' << c_opts.str() << ' '<< src.get_base()<<" /link " << l_opts.str();
         if(log && has_any(BUILD::VERBOSE) )
             *log << "Compiling: "<<vars.expand(single.str())<<'\n';
         return compiler.exec(20,vars.expand(single.str()).c_str());
     }
-    if(has_any(BUILD::DEBUG) || precompiled) {
+    if(has_any(BUILD::DEB) || precompiled) {
         c_opts << "/Fd" <<build_dir<<C4S_DSEP<<name<<".pdb ";
         if( !has_any(BUILD::LIB) )
             l_opts << "/PDB:"<<build_dir<<C4S_DSEP<<name<<".pdb ";
@@ -185,7 +185,7 @@ int c4s::builder_vc::precompile(const char *pchname, const char *content, const 
     pchsrc.close();
 
     // We add this flag at the last minute to make sure caller has time to set the static_runtime flag.
-    if(has_any(BUILD::DEBUG)) {
+    if(has_any(BUILD::DEB)) {
         if(static_runtime) c_opts << "/MTd ";
         else c_opts << "/MDd ";
     }

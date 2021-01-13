@@ -83,9 +83,9 @@ int build(ostream *log)
         }
         if(scheme.compare("YES")==0){
             debug = true;
-            build_flags.add(BUILD::DEBUG);
+            build_flags.add(BUILD::DEB);
         } else
-            build_flags.add(BUILD::RELEASE);
+            build_flags.add(BUILD::REL);
 #else
         cout << "Missing target! Please specify -deb or -rel as parameter.\n";
         return 2;
@@ -94,9 +94,9 @@ int build(ostream *log)
     else {
         if(args.is_set("-deb")) {
             debug = true;
-            build_flags.add(BUILD::DEBUG);
+            build_flags.add(BUILD::DEB);
         }else
-            build_flags.add(BUILD::RELEASE);
+            build_flags.add(BUILD::REL);
     }
     if(args.is_set("-V"))
         build_flags.add(BUILD::VERBOSE);
@@ -127,8 +127,8 @@ int build(ostream *log)
     plmkc4s += path("makec4s.cpp");
     /* Padding is not needed for library since the build directory names are always padded.*/
     build_flags.set(BUILD::BIN);
-    if(debug) build_flags.set(BUILD::DEBUG);
-    else build_flags.set(BUILD::RELEASE);
+    if(debug) build_flags.set(BUILD::DEB);
+    else build_flags.set(BUILD::REL);
     if(args.is_set("-V"))
         build_flags.set(BUILD::VERBOSE);
 
@@ -174,7 +174,7 @@ int build(ostream *log)
     make->add_comp("/DC4S_LIB_BUILD /D_CRT_SECURE_NO_WARNINGS");
     if(args.is_set("-xp"))
         make->add_comp("/D_WIN32_WINNT=0x0501");
-    *make |= args.is_set("-deb") ? BUILD::DEBUG:BUILD::RELEASE;
+    *make |= args.is_set("-deb") ? BUILD::DEB:BUILD::REL;
     if(args.is_set("-V"))
         *make |= BUILD::VERBOSE;
     if(make->build()) {
@@ -193,7 +193,7 @@ int build(ostream *log)
     c4slib += " /LIBPATH:";
     c4slib += make->get_build_dir();
     make2->add_link(c4slib.c_str());
-    *make2 |= args.is_set("-deb") ? BUILD::DEBUG:BUILD::RELEASE;
+    *make2 |= args.is_set("-deb") ? BUILD::DEB:BUILD::REL;
     if(args.is_set("-V"))
         *make2 |= BUILD::VERBOSE;
     if(make2->build()) {
@@ -264,9 +264,9 @@ int install()
     path make_name("makec4s");
 #else
     sources.add(cpp_win,' ');
-    path dlib(builder_vc(0,target.c_str(),0,BUILD::LIB|BUILD::DEBUG).get_target_path());
-    path rlib(builder_vc(0,target.c_str(),0,BUILD::LIB|BUILD::RELEASE).get_target_path());
-    path make_name(builder_vc(0,"makec4s",0,BUILD::BIN|BUILD::RELEASE).get_target_name());
+    path dlib(builder_vc(0,target.c_str(),0,BUILD::LIB|BUILD::DEB).get_target_path());
+    path rlib(builder_vc(0,target.c_str(),0,BUILD::LIB|BUILD::REL).get_target_path());
+    path make_name(builder_vc(0,"makec4s",0,BUILD::BIN|BUILD::REL).get_target_name());
 #endif
     int lib_count=0;
     if(dlib.exists()) {

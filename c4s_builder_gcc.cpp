@@ -73,7 +73,7 @@ void c4s::builder_gcc::parse_flags()
     }
 
     if(build_dir.size()==0) {
-        build_dir = has_any(BUILD::DEBUG)?"debug":"release";
+        build_dir = has_any(BUILD::DEB)?"debug":"release";
         if(log && has_any(BUILD::VERBOSE))
             *log << "builder::builder - output dir set to: "<<build_dir<<'\n';
     }
@@ -88,7 +88,7 @@ void c4s::builder_gcc::parse_flags()
 #endif
     }
 
-    if(has_any(BUILD::DEBUG)) {
+    if(has_any(BUILD::DEB)) {
         c_opts << "-ggdb -O0 -D_DEBUG ";
         if(!has_any(BUILD::LIB)) {
             l_opts << "-ggdb -O0 ";

@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
     if(args.is_set("-def")) {
         BUILD flags(BUILD::BIN);
-        flags.add(debug ? BUILD::DEBUG : BUILD::RELEASE);
+        flags.add(debug ? BUILD::DEB : BUILD::REL);
         try {
 #if defined(__linux) || defined(__APPLE__)
             builder_gcc gcc(0, "dummy", 0, flags);
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
         target += args.get_value("-l");
     }
     int flags = BUILD::BIN;
-    flags |= debug ? BUILD::DEBUG : BUILD::RELEASE;
+    flags |= debug ? BUILD::DEB : BUILD::REL;
     if(verbose)
         flags |= BUILD::VERBOSE;
     builder *make=0;
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
         }
 #endif
         make->set(BUILD::BIN);
-        make->set(debug ? BUILD::DEBUG : BUILD::RELEASE);
+        make->set(debug ? BUILD::DEB : BUILD::REL);
         if(verbose)
             make->set(BUILD::VERBOSE);
         if(args.is_set("-inc"))

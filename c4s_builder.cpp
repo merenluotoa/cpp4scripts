@@ -44,7 +44,7 @@ c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, con
 {
     sources = _sources;
     my_sources = false;
-    build_dir = has_any(BUILD::DEBUG)?"debug":"release";
+    build_dir = has_any(BUILD::DEB)?"debug":"release";
     if(log) {
         compiler.pipe_to(log);
         linker.pipe_to(log);

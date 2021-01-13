@@ -50,7 +50,7 @@ c4s::builder_ml::builder_ml(path_list *_sources, const char *_name, ostream *_lo
     // Set the default flags
     if( !has_any(BUILD::NODEFARGS)) {
         c_opts << "/nologo ";
-        if(has_any(BUILD::DEBUG)) {
+        if(has_any(BUILD::DEB)) {
             c_opts << "/Zi ";
         }
         if(sources && sources->size()>1)
@@ -73,7 +73,7 @@ c4s::builder_ml::builder_ml(path_list *_sources, const char *_name, ostream *_lo
     }
     if( !has_any(BUILD::NODEFARGS) && !has_any(BUILD::NOLINK)) {
         l_opts << "/nologo /SUBSYSTEM:CONSOLE ";
-        if( has_any(BUILD::DEBUG) ) {
+        if( has_any(BUILD::DEB) ) {
             l_opts << "/DEBUG ";
         }
         else {
