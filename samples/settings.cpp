@@ -16,9 +16,7 @@ void print_settings(configuration &conf)
     {
         cout<<"Section: "<<(*si)->get_name()<<'\n';
         for(auto item : (*si)->items) {
-            cout<<"  "<<item.first<<"\t\t";
-            item.second->print(cout);
-            cout<<'\n';
+            cout<<item.first<<"\t\t"<<item.second<<'\n';
         }
     }
     cout<<'\n';

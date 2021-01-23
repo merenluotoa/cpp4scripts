@@ -72,7 +72,8 @@ public:
     item(TYPE _t) : type(_t) {}
     virtual ~item() {}
     TYPE get_type() { return type; }
-    virtual void print(ostream &) = 0;
+    virtual void print(ostream &) const = 0;
+
 private:
     TYPE type;
 };
@@ -91,7 +92,7 @@ public:
             item(TYPE::STR) {
         value = original.value;
     }
-    void print(ostream &os) { os<<value; }
+    void print(ostream &os) const { os<<value; }
     std::string value;
 };
 // ...............................................
@@ -106,7 +107,7 @@ public:
             item(TYPE::INT) {
         value = original.value;
     }
-    void print(ostream &os) { os<<value; }
+    void print(ostream &os)  const { os<<value; }
     int value;
 };
 // ...............................................
@@ -121,7 +122,7 @@ public:
             item(TYPE::FLOAT) {
         value = original.value;
     }
-    void print(ostream &os) { os<<value; }
+    void print(ostream &os) const { os<<value; }
     float value;
 };
 // ...............................................
@@ -136,7 +137,7 @@ public:
             item(TYPE::BOOL) {
         value = original.value;
     }
-    void print(ostream &os) { os<<(value?"true":"false"); }
+    void print(ostream &os) const { os<<(value?"true":"false"); }
     bool value;
 };
 
@@ -204,4 +205,11 @@ protected:
 }; // c4s::settings namespace
 
 }; // c4s namespace
+
+inline std::ostream& operator<< (ostream& os, const c4s::settings::item* im)
+{
+    im->print(os);
+    return os;
+}
+
 #endif
