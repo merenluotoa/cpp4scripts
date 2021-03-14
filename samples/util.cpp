@@ -68,12 +68,19 @@ void test3()
     else
         cout << "Next is "<<here.get_base()<<'\n';
 }
-
+// ------------------------------------------------------------------------------------------
+void test4()
+{
+    BUILD fg(BUILD::DEB);
+    cout << "flags = "<<hex<<fg.get()<<'\n';
+    fg |= BUILD::VERBOSE|BUILD::NOLINK;
+    cout << "flags = "<<hex<<fg.get()<<'\n';
+}
 // ==========================================================================================
 int main(int argc, char **argv)
 {
-    const int tmax = 3;
-    tfptr tfunc[tmax] = { &test1, &test2, &test3 };
+    const int tmax = 4;
+    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4 };
 
     args += argument("-t",  true, "Sets VALUE as the test to run.");
     args += argument("-s",  true, "Sets the text to search for.");
@@ -87,6 +94,8 @@ int main(int argc, char **argv)
         cout << "Missing -t argument\n";
         cout << " 1 = searches the util1.txt for given text (-s)\n";
         cout << " 2 = Tests various wild card matchings\n";
+        cout << " 3 = Generate next file index.\n";
+        cout << " 4 = BUILD flags.\n";
         return 1;
     }
     istringstream iss(args.get_value("-t"));

@@ -47,15 +47,22 @@ namespace c4s {
         //! Constructs path list by adding given PATH like string into the list.
         /*! \param str List of paths
            \param sep Path separator used in str */
-        path_list(const char*str, const char sep) { add(str,sep); }
+        path_list(const char*str, const char sep) {
+            add(str,sep);
+        }
         /// Creates a list of paths from the source list.
-        path_list(const path_list &pl, const string &dir, const char*ext=0) { add(pl,dir,ext); }
+        path_list(const path_list &pl, const string &dir, const char*ext=0) {
+            add(pl,dir,ext);
+        }
         /// Constructs list by reading given directory with supplied wild card.
         /** \param target Path to the target directory. Only dir-part is considered.
-           \param wild Wildcard (*,?) to gather the files with. Use null or '*' to gather all files.
+           \param grep Grep regular expression to match included files. If null includes all files.
            \param plo See \sa PathListFlags
-           \param excl List of wildcard strings (*,?) to exclude from the list. Separate wildcards with ':'.*/
-        path_list(const path &target, const char *wild=0, int plo=PLF_NONE, const char *excl=0) { add(target, wild, plo, excl); }
+           \param exex Regular expression of files to exclude.*/
+        path_list(const path &target, const string &grep, int plo=PLF_NONE,
+                  const std::string &exex=std::string()) {
+            add(target, grep, plo, exex);
+        }
 
         //! Adds a given path to the list
         void operator+=(const path &p) { add(p); }
@@ -77,8 +84,9 @@ namespace c4s {
         size_t add(const path_list &pl);
         //! Append single path to the list
         void add(const path &p) { plist.push_back(p); }
-        //! Adds all files from the given directory that match the given wild card.
-        size_t add(const path &p, const char *wild, int plo=PLF_NONE, const char *excl=0);
+        //! Adds all files from the given directory that match the given grep regular expression.
+        size_t add(const path &p, const string &grep, int plo=PLF_NONE,
+                   const string &exex=std::string());
         //! Appends source files to path-list
         size_t add(const path_list &pl, const string&, const char *ext=0);
         //! Appends source files recursively starting from the path given.

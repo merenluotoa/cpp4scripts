@@ -426,7 +426,7 @@ void c4s::proc_pipes::write_child_input(const string &input)
 #endif
 #ifdef C4S_DEBUGTRACE
     cerr << "proc_pipes::write_child_input - len:"<<input.size()<<'\n';
-    if(bw<input.size()) {
+    if((size_t)bw<input.size()) {
         if(errno)
             cerr << "proc_pipes::write_child_input - "<<strerror(errno);
         cerr << "proc_pipes::write_child_input - failed. BW="<<bw<<'\n';

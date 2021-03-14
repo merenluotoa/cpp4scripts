@@ -29,7 +29,7 @@ class builder_gcc : public builder
 public:
     //! g++ builder constructor
     builder_gcc(path_list *sources, const char *name, ostream *log, const BUILD &);
-    builder_gcc(const char *name, ostream *log);
+    builder_gcc(const char *name, ostream *log, const BUILD &);
     //! Executes the build.
     int build();
 private:

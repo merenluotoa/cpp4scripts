@@ -32,7 +32,6 @@ public:
     static const flag32 LIB      = 0x040; //!< Builds a library
     static const flag32 VERBOSE  = 0x080; //!< Verbose build, shows more output
     static const flag32 RESPFILE = 0x100; //!< Puts arguments into response file before compiling or linking.
-    static const flag32 GUI      = 0x200; //!< Builds with GUI flags as opposed to console.
     static const flag32 WIDECH   = 0x400; //!< Uses wide characters i.e. wchar_t
     static const flag32 NOLINK   = 0x800; //!< Only compilation is done at build-command.
     static const flag32 NODEFARGS= 0x1000; //!< Skip use of default arguments. All build arguments must be specifically added.
@@ -92,7 +91,7 @@ protected:
     //! Protected constructor: Initialize builder with initial list of files to compile
     builder(path_list *sources, const char *name, ostream *log, const BUILD &);
     //! Protected constructor: File list is read from git.
-    builder(const char *name, ostream *log);
+    builder(const char *name, ostream *log, const BUILD &);
     //! Executes compile step
     int compile(const char *out_ext, const char *out_arg, bool echo_name=true);
     //! Executes link/library step.

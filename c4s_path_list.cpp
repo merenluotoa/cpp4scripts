@@ -18,6 +18,7 @@ This file is part of Cpp4Scripts library.
 
 Copyright (c) Menacon Ltd, Finland
 *******************************************************************************/
+#include <regex>
 #ifdef C4S_LIB_BUILD
  #include <string.h>
  #if defined(__linux) || defined(__APPLE__)
@@ -32,6 +33,7 @@ Copyright (c) Menacon Ltd, Finland
  #include "c4s_util.hpp"
  using namespace c4s;
 #endif
+
 // ==================================================================================================
 size_t c4s::path_list::add(const path_list &source, const string &directory, const char *ext)
 /*! Only the base names are used from the source list.  All files in this list will have the
@@ -97,41 +99,25 @@ size_t c4s::path_list::add(const path_list &source)
 }
 
 // ==================================================================================================
-size_t c4s::path_list::add(const path &target, const char *wild, int plf, const char *exclude)
+size_t c4s::path_list::add(const path &target, const string &grep, int plf, const string &exex)
 /*!
   \param target Path to the target directory. Only dir-part is considered.
-  \param wild Wildcard (*,?) to gather the files with. Use null or '*' to gather all files.
+  \param greap Grep regular expression to match included files. If null includes all files.
   \param plf Combination of add options. See add-constants.
-  \param exclude List of wildcard strings (*,?) to exclude from the list. Separate wildcards with ':'.
+  \param exex Regular expression of files to exclude.
   \returns size_t number of files that have been added.
 */
 {
+    regex grep_rx, exclude_rx;
     string fname;
-    list<string> exlst;
-    list<string>::iterator exi;
-
-    // Collect the excludes
-    if(exclude) {
-        const char *prev = exclude;
-        const char *exptr = exclude;
-        while(*exptr) {
-            if(*exptr == ':') {
-                exlst.push_back(string(prev,exptr-prev));
-                prev = exptr+1;
-            }
-            exptr++;
-        }
-        if(prev) {
-            exlst.push_back(string(prev,exptr-prev));
-        }
-    }
     size_t original_size = plist.size();
+    bool include;
+
 #ifdef C4S_DEBUGTRACE
-    cout << "DEBUG - path_list::add target:"<<target.get_path()<<"; wild:"<<(wild?wild:"[]")<<"; options:0x"<<hex<<plf<<dec<<"; exclude:"<<(exclude?exclude:"[]")<<"; exlist size:"<<exlst.size()<<endl;
+    cout << "DEBUG - path_list::add target:"<<target.get_path()<<"; grep:"<<grep;
+    cout << "; options:0x"<<hex<<plf<<dec<<"; exex:"<<exex<<'\n';
 #endif
 #if defined(__linux) || defined(__APPLE__)
-    if(wild && *wild=='*' && *(wild+1)==0)
-        wild = 0;
     // Open and read the directory
     string dir;
     if(target.get_dir().empty())
@@ -143,39 +129,47 @@ size_t c4s::path_list::add(const path &target, const char *wild, int plf, const 
     {
         ostringstream os;
         os << "path_list::add - Unable to access directory: "<<dir<<'\n'<<strerror(errno);
-        throw path_exception(os.str());
+        throw runtime_error(os.str());
     }
+    // Initialize regular expressions
+    if(!grep.empty())
+        grep_rx.assign(grep, regex_constants::grep);
+    if(!exex.empty())
+        exclude_rx.assign(exex, regex_constants::grep);
+    // Apply regular expressions to each file in give directory
     struct stat file_stat;
     struct dirent *de = readdir(source_dir);
     while(de) {
-        // check the match
-        if(!wild || match_wildcard(de->d_name,wild)) {
-            // check the excludes
-            for(exi=exlst.begin(); exi!=exlst.end(); exi++) {
-                if(match_wildcard(de->d_name, exi->c_str()))
-                    break;
+        include = false;
+        if(!grep.empty()) {
+            if(regex_search(de->d_name, grep_rx)) {
+                if(exex.empty() || !regex_search(de->d_name, exclude_rx))
+                    include = true;
             }
-            if(!exclude || exi==exlst.end()) {
-                // Check the file/name type.
-                fname = target.get_dir();
-                fname += de->d_name;
-                if(!lstat(fname.c_str(), &file_stat)) {
-                    if( (plf & PLF_NOREG)==0 && S_ISREG(file_stat.st_mode) )
-                        plist.push_back( path(target.get_dir(), string(de->d_name)) );
-                    else if( (plf & PLF_SYML)>0 && S_ISLNK(file_stat.st_mode) )
-                        plist.push_back( path(target.get_dir(), string(de->d_name)) );
-                    else if( (plf & PLF_DIRS)>0 && S_ISDIR(file_stat.st_mode) && de->d_name[0]!='.' ) {
-                        string dirname = target.get_dir();
-                        dirname += de->d_name;
-                        dirname += "/";
-                        plist.push_back(path(dirname));
-                    }
+        }
+        else
+            include = true;
+        if(include) {
+            // Check the file/name type.
+            fname = target.get_dir();
+            fname += de->d_name;
+            if(!lstat(fname.c_str(), &file_stat)) {
+                if( (plf & PLF_NOREG)==0 && S_ISREG(file_stat.st_mode) )
+                    plist.push_back( path(target.get_dir(), string(de->d_name)) );
+                else if( (plf & PLF_SYML)>0 && S_ISLNK(file_stat.st_mode) )
+                    plist.push_back( path(target.get_dir(), string(de->d_name)) );
+                else if( (plf & PLF_DIRS)>0 && S_ISDIR(file_stat.st_mode) && de->d_name[0]!='.' ) {
+                    string dirname = target.get_dir();
+                    dirname += de->d_name;
+                    dirname += "/";
+                    plist.push_back(path(dirname));
                 }
             }
         }
         de = readdir(source_dir);
     }
 #else
+#error TODO: start using regular expressions as in Linux.
     WIN32_FIND_DATA data;
     HANDLE find;
     BOOL findNext = TRUE;
@@ -232,7 +226,7 @@ size_t c4s::path_list::add(const path &target, const char *wild, int plf, const 
     FindClose(find);
 #endif
 #ifdef C4S_DEBUGTRACE
-    cout << "DEBUG - path_list::add found items:"<<plist.size()<<endl;
+    cout << "DEBUG - path_list::add found items:"<<plist.size()-original_size<<endl;
 #endif
     return plist.size()-original_size;
 }

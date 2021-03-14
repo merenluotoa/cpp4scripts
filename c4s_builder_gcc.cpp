@@ -39,8 +39,8 @@ c4s::builder_gcc::builder_gcc(path_list *_sources, const char *_name, ostream *_
     late_flags = false;
 }
 // ------------------------------------------------------------------------------------------
-c4s::builder_gcc::builder_gcc(const char *_name, ostream *_log)
-    : builder(_name, _log)
+c4s::builder_gcc::builder_gcc(const char *_name, ostream *_log, const BUILD &build_flags)
+    : builder(_name,_log, build_flags)
 {
     late_flags = true;
 }

@@ -73,12 +73,16 @@ class flags32_base
 {
 public:
     flags32_base(flag32 _value) : value(_value) { }
+    flags32_base() : value(0) { }
 
+    flag32 get() { return value; }
     bool has_any(flag32 bits) { return (value&bits)>0 ? true : false; }
     bool has_all(flag32 bits) { return (value&bits)==bits ? true : false; }
     void set(flag32 bits) { value = bits; }
-    void add(flag32 bits) { value |= bits; }
     void clear(flag32 bits) { value &= ~bits; }
+
+    void add(flag32 bits) { value |= bits; }
+    flag32& operator|=(flag32 bits) { value|=bits; return value; }
 
 protected:
     flag32 value;

@@ -54,14 +54,14 @@ c4s::builder::builder(path_list *_sources, const char *_name, ostream *_log, con
     timeout = 15;
 }
 // ==================================================================================================
-c4s::builder::builder(const char *_name, ostream *_log)
+c4s::builder::builder(const char *_name, ostream *_log, const BUILD &flags)
 /** Base builder constructor.
     Files are automatically read from git filelist. Files with cpp-extension are considered part of
     of the project.
    \param _name Name of the target binary
    \param _log If specified, will receive compiler output.
 */
-        : log(_log), name(_name)
+        : BUILD(flags), log(_log), name(_name)
 {
     if(log) {
         compiler.pipe_to(log);

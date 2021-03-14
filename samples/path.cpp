@@ -27,7 +27,7 @@ void test1()
         pl.copy_to(target);
         pl.set_dir(target);
         pl.chmod(0x600);
-    }catch(path_exception pe){
+    }catch(const path_exception &pe){
         cerr << "\nPath failure: "<<pe.what()<<'\n';
         return;
     }
@@ -59,7 +59,7 @@ void test2()
         cin >> key;
         // Now remove everything.
         target.rmdir(true);
-    } catch( path_exception pe) {
+    } catch( const path_exception &pe) {
         cerr << "Test 2 fail: "<<pe.what()<<'\n';
         return;
     }
@@ -73,7 +73,7 @@ void test3()
         path orig("c4s-path.cpp");
         path targ("c4s-path.tmp"); //, user("testu"), 0x755);
         orig.cp(targ);
-    }catch(c4s_exception pe){
+    }catch(const c4s_exception &pe){
         cerr << "Test 3 failed: "<<pe.what()<<'\n';
         return;
     }
@@ -90,7 +90,7 @@ void test4()
         ofstream of(lp.get_path().c_str());
         of << "Test file created\n";
         of.close();
-    }catch(c4s_exception ce) {
+    }catch(const c4s_exception &ce) {
         cerr << "Test 4 failed: "<<ce.what()<<'\n';
         return;
     }
@@ -114,15 +114,15 @@ void test5()
         if(!lnk.exists())
             tmp1.symlink(lnk);
 
-        path_list pl1(path("./"), "*");
+        path_list pl1(path("./"), string());
         cout << "This dir has "<<pl1.size()<<" files.\n";
-        path_list pl2(path("./"), "*", PLF_DIRS);
+        path_list pl2(path("./"), 0, PLF_DIRS);
         cout << "Including sub dirs it has "<<pl2.size()<<" files.\n";
 #ifdef __linux
-        path_list pl3(path("./"), "*", PLF_NOREG|PLF_SYML);
+        path_list pl3(path("./"), 0, PLF_NOREG|PLF_SYML);
         cout << "This dir has "<<pl3.size()<<" symbolic links.\n";
 #endif
-    }catch(c4s_exception ce) {
+    }catch(const c4s_exception &ce) {
         cerr << "Test 5 failed: "<<ce.what()<<'\n';
         return;
     }
@@ -134,8 +134,8 @@ void test6()
     path parent("../"), current("./");
     parent.cd();
     path samples("samples/");
-    path_list cpp(current,"*.cpp");
-    cpp.add(samples,"*.cpp");
+    path_list cpp(current,"\\.cpp$");
+    cpp.add(samples,"\\.cpp$");
 
     cout << "List of cpp files in CPP4Scripts and samples:\n";
     for(path_iterator pi=cpp.begin(); pi!=cpp.end(); pi++)
@@ -150,7 +150,7 @@ void test7()
     path s2("sample2.txt");
     try {
         s1.cat(s2);
-    }catch(c4s_exception ce) {
+    }catch(const c4s_exception &ce) {
         cout << "cat failed:"<<ce.what()<<'\n';
         return;
     }
@@ -183,7 +183,7 @@ void test9()
     try {
         orig.cp(copy,PCF_FORCE);
         cout << copy.search_replace(args.get_value("-s"), args.get_value("-r"), true) << " values replaced.\n";
-    }catch(path_exception pe) {
+    }catch(const path_exception &pe) {
         cout << "search-replace failed: "<<pe.what()<<'\n';
     }
 }
@@ -204,7 +204,7 @@ void test10()
             cout <<"Block replace was succesful.\n";
         else
             cout <<"Replace not completed. Either start or end tag not found.\n";
-    }catch(path_exception pe) {
+    }catch(const path_exception &pe) {
         cout << "search-replace failed: "<<pe.what()<<'\n';
     }
 }
@@ -231,7 +231,7 @@ void test11()
             cout <<"Block replace was succesful.\n";
         else
             cout <<"Replace not completed. Either start or end tag not found.\n";
-    }catch(path_exception pe) {
+    }catch(const path_exception &pe) {
         cout << "search-replace failed: "<<pe.what()<<'\n';
     }
 }
@@ -247,11 +247,27 @@ void test12()
     p1.dump(cout);
     p2.dump(cout);
 }
+// ------------------------------------------------------------------------------------------
+void test13()
+{
+    if(!args.is_set("-s")) {
+        cout<<"Missing search regex\n";
+        return;
+    }
+    string exex;
+    if(args.is_set("-e"))
+        exex = args.get_value("-e");
+    path_list cpp(path("./"), args.get_value("-s"), PLF_NONE, exex);
+    cout << "List of results:\n";
+    for(path_iterator pi=cpp.begin(); pi!=cpp.end(); pi++)
+        cout << pi->get_path() << '\n';
+}
 // ==========================================================================================
 int main(int argc, char **argv)
 {
-    const int tmax = 12;
-    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4, &test5, &test6, &test7, &test8, &test9, &test10, &test11, &test12};
+    const int tmax = 13;
+    tfptr tfunc[tmax] = { &test1, &test2, &test3, &test4, &test5, &test6, &test7, &test8, &test9,
+        &test10, &test11, &test12, &test13 };
 
     const char *title = "Cpp4Scripts - Path sample and test program";
     const char *info  = "Following tests have been defined:\n"\
@@ -264,7 +280,10 @@ int main(int argc, char **argv)
         " 7 = cat function: puts together two files.\n"\
         " 8 = path constructors.\n"\
         " 9 = Search-replace.\n"\
-        "10 = Replace block.\n";
+        "10 = Replace block.\n"\
+        "11 = Replace block within custom tags.\n"\
+        "12 = Path construction with const char* and const string&.\n"\
+        "13 = path_list: test exclude regex. (-s search regex; -e exclude regex).\n";
 
     args += argument("-t",  true, "Sets VALUE as the test to run.");
     args += argument("-s",  true, "Sets VALUE as the text to search.");
@@ -274,7 +293,7 @@ int main(int argc, char **argv)
 
     try{
         args.initialize(argc,argv,1);
-    }catch(c4s_exception){
+    }catch(const c4s_exception &){
         cout << title <<'\n';
         args.usage();
         cout << info <<'\n';

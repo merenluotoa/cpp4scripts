@@ -92,8 +92,6 @@ c4s::builder_vc::builder_vc(path_list *_sources, const char *_name, ostream *_lo
             l_opts << "/MACHINE:X64 ";
         if( has_any(BUILD::LIB) )
             return;
-        if( has_any(BUILD::GUI) ) l_opts << "/SUBSYSTEM:WINDOWS ";
-        else l_opts << "/SUBSYSTEM:CONSOLE ";
         if( has_any(BUILD::SO))
             l_opts << "/DLL /IMPLIB:"<<build_dir<<C4S_DSEP<<name<<".lib ";
         if( !has_any(BUILD::LIB) ) {
